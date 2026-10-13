@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-//  *************************************************************************
+//  ***************************************************************************
 //  This is a copy of last year's trajectory calculation file used on Serquet
-//  *************************************************************************
+//  ***************************************************************************
 
 public class TrajectoryCalculate {
     public static double CalculateVelocity(double targetDistance) {
