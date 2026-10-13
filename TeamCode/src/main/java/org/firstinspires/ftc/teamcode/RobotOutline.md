@@ -1,23 +1,36 @@
-This will serve as the reference file for our BioBuzz robot configuration of motors and sensors
+# <span style="color: #803282">Robot Configuration Reference</span>
 
-#Control Hub
-- motor1- ""
-- motor2- ""
-- motor3- ""
-- motor4- ""
-*************
-- servo1- ""
-- servo2- ""
-- servo3- ""
-- servo4- ""
+## <span style="color: #803282">Control Hub</span>
+> ### Motors
+ - motor0-"FlywheelA"
+ - motor1-"FlywheelB"
+ - motor2-"Intake"
+ - motor3-"Feeder"
 
+> ### Servos
 
+- servo0- "TurretAzimuthA"
+- servo1- null
+- servo2- "TurretAzimuthB"
+- servo3- null
+- servo4- "ShooterAngleA"
+- servo5- "ShooterAngleB"
 
+> ### USB
+- USB3.0-"Limelight"
 
-#Expansion Hub
-- motor1- ""
-**************
-- servo1- ""
-- servo2- ""
-- servo3- ""
-- servo4- ""
+## <span style="color: #803282">Expansion Hub</span>
+> ### Motors
+ - motor0-"FrontLeftDT"
+ - motor1-"BackLeftDT"
+ - motor2-"FrontRightDT"
+ - motor3-"BackRightDT"
+
+> ### Servos
+
+- servo0- "FlowerPickerA"
+- servo1- null
+- servo2- "FlowerPickerB"
+- servo3- null
+- servo4- null
+- servo5- null
