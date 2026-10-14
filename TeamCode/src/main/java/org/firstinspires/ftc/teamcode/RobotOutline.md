@@ -2,35 +2,35 @@
 
 ## <span style="color: #803282">Control Hub</span>
 > ### Motors
- - motor0-"FlywheelA"
- - motor1-"FlywheelB"
- - motor2-"Intake"
- - motor3-"Feeder"
+ - motor0-"flyWheelA"
+ - motor1-"flyWheelB"
+ - motor2-"intake"
+ - motor3-"feeder"
 
 > ### Servos
 
-- servo0- "TurretAzimuthA"
+- servo0- "turretAzimuthA"
 - servo1- null
-- servo2- "TurretAzimuthB"
+- servo2- "turretAzimuthB"
 - servo3- null
-- servo4- "ShooterAngleA"
-- servo5- "ShooterAngleB"
+- servo4- "shooterAngleA"
+- servo5- "shooterAngleB"
 
 > ### USB
-- USB3.0-"Limelight"
+- USB3.0-"limelight"
 
 ## <span style="color: #803282">Expansion Hub</span>
 > ### Motors
- - motor0-"FrontLeftDT"
- - motor1-"BackLeftDT"
- - motor2-"FrontRightDT"
- - motor3-"BackRightDT"
+ - motor0-"frontLeftDT"
+ - motor1-"backLeftDT"
+ - motor2-"frontRightDT"
+ - motor3-"backRightDT"
 
 > ### Servos
 
-- servo0- "FlowerPickerA"
+- servo0- "flowerPickerA"
 - servo1- null
-- servo2- "FlowerPickerB"
+- servo2- "flowerPickerB"
 - servo3- null
 - servo4- null
 - servo5- null
