@@ -2,9 +2,14 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp
+@Utility
+
+// Utility Opmodes are available under the settings menu to the top right and are
+// an organizational change to keep functioning opmodes available but not cluttering
+// the main AUTO/TELE area of code display
 
 public class FlowerPicker extends LinearOpMode {
     Servo servoA,servoB;
