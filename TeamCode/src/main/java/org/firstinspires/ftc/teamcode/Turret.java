@@ -9,7 +9,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.Range;
-public class Turret {
+public class
+
+Turret {
         private static final double SERVO_MIN = 0.1809;
         private static final double SERVO_MAX = 0.2306;
         private final DcMotorEx flywheelA;

@@ -1,7 +1,22 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-public class Intake {
+@TeleOp
+public class Intake extends LinearOpMode {
+    DcMotor intake;
 
+    public void runOpMode() {
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        if (gamepad1.left_bumper) {
+            intake.setPower(1.0);
+        } else if (gamepad1.right_bumper) {
+            intake.setPower(-1.0);
+        } else {
+            intake.setPower(0.0);
+        }
+    }
 }
-//TODO add forward method and off method
-//TODO add a reverse method

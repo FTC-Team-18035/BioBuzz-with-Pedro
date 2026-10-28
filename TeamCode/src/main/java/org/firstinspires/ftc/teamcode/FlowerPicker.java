@@ -36,4 +36,3 @@ public class FlowerPicker extends LinearOpMode {
         }
     }
 }
-//TODO add a method for a servo  to flip to down position and to up position
