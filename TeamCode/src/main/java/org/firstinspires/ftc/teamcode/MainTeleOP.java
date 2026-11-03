@@ -1,4 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
@@ -8,11 +10,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import Trajectory;
-import Turret;
+//import Turret;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-public class MainTeleOP extends OpMode {
+public class MainTeleOP extends LinearOpMode {
 
     private Follower follower;
 
@@ -24,7 +26,7 @@ public class MainTeleOP extends OpMode {
     private Servo flowerPickerB;
 
     @Override
-    public void init() {
+    public void runOpMode() {
         // Create the Pedro follower
         follower = Constants.create(hardwareMap);
 
@@ -35,17 +37,17 @@ public class MainTeleOP extends OpMode {
         flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
 
         // TODO: Add Limelight, will be using placeholder for now
-    }
 
-    @Override
-    public void loop() {
+    waitForStart();
+
+    while (opModeIsActive()) {
         // Limelight.getTX and all that good stuff
         double distance = 0.0; // Placeholder for Limelight TX value
 
         LaunchVelocity=Trajectory.CalculateVelocity(distance);
         LaunchAngle=Trajectory.CalculateAngle(distance);
 
-        Turret.target(Limelight.getTX(), follower.pose().velocity().x, LaunchVelocity, LaunchAngle);
+        // Turret.target(Limelight.getTX(), follower.pose().velocity().x, LaunchVelocity, LaunchAngle);
 
         // Calculate drive powers for field centric control based on joystick input and robot heading, using Pedro's field centric driving
         DrivePowers powers = ManualDrive.fieldCentric(
@@ -58,4 +60,5 @@ public class MainTeleOP extends OpMode {
         ManualDrive.driveOrHold(follower, powers);
         follower.update();
     }
+}
 }
