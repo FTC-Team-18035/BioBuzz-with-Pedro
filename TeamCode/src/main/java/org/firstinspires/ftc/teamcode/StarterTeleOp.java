@@ -335,9 +335,9 @@ public class StarterTeleOp extends LinearOpMode {
                     targetDistanceCm = smoothedDistanceCm;
 
                     double targetVelocity =
-                            TrajectoryCalculate.CalculateVelocity(targetDistanceCm);
+                            Trajectory.CalculateVelocity(targetDistanceCm);
                     double targetAngle =
-                            TrajectoryCalculate.CalculateAngle(targetDistanceCm);
+                            Trajectory.CalculateAngle(targetDistanceCm);
 
                     shooter.setTarget(targetVelocity, targetAngle);
 
