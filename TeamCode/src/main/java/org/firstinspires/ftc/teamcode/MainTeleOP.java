@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
@@ -7,13 +8,13 @@ import com.pedropathing.follower.ManualDrive;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-//import Turret;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-
 @TeleOp
 public class MainTeleOP extends LinearOpMode {
+
+    private Turret Turret;
 
     private Follower follower;
 
@@ -35,33 +36,26 @@ public class MainTeleOP extends LinearOpMode {
         flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
         flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
 
-        // TODO: Add Limelight, will be using placeholder for now
+        follower.setPose(new Pose(0,0,Math.toRadians(90))); // Make sure this is the robot's actual starting pose
 
-    waitForStart();
+        Turret.Initialize(); // Zero the turret and hood
 
-    while (opModeIsActive()) {
-        // Limelight.getTX and all that good stuff
-        double distance = 0.0; // Placeholder for Limelight TX value
+        waitForStart();
 
-        double LaunchVelocity = Trajectory.CalculateVelocity(distance);
-        double LaunchAngle = Trajectory.CalculateAngle(distance);
+        while (opModeIsActive()) {
 
-        // Turret.target(Limelight.getTX(), follower.pose().velocity().x, LaunchVelocity, LaunchAngle);
+            Turret.Target(follower.pose().x(), follower.pose().y(), Math.toDegrees(follower.pose().heading()), follower.localizer.velocity().vy ); // Run SOTM
 
-        // Calculate drive powers for field centric control based on joystick input and robot heading, using Pedro's field centric driving
-        DrivePowers powers = ManualDrive.fieldCentric(
-                -gamepad1.left_stick_y,
-                gamepad1.left_stick_x,
-                gamepad1.right_stick_x,
-                follower.pose().heading()
-        );
+            // Calculate drive powers for field centric control based on joystick input and robot heading, using Pedro's field centric driving
+            DrivePowers powers = ManualDrive.fieldCentric(
+                    -gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x,
+                    follower.pose().heading()
+            );
 
-        ManualDrive.driveOrHold(follower, powers);
-        follower.update();
-
-        telemetry.addData( "Current Pose ", follower.pose());
-        telemetry.addData( "Current Velocity ", follower.velocity());
-        telemetry.update();
+            ManualDrive.driveOrHold(follower, powers);
+            follower.update();
+        }
     }
-}
 }
