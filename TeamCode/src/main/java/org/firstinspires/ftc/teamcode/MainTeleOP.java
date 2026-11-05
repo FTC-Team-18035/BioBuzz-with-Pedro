@@ -20,7 +20,6 @@ public class MainTeleOP extends LinearOpMode {
 
     // Define motors and servos
     private DcMotorEx intake;
-    private DcMotorEx feeder;
 
     private Servo flowerPickerA;
     private Servo flowerPickerB;
@@ -31,7 +30,6 @@ public class MainTeleOP extends LinearOpMode {
         follower = Constants.create(hardwareMap);
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
-        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
 
         flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
         flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
@@ -44,7 +42,7 @@ public class MainTeleOP extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            Turret.Target(follower.pose().x(), follower.pose().y(), Math.toDegrees(follower.pose().heading()), follower.localizer.velocity().vy ); // Run SOTM
+            Turret.target(follower.pose().x(), follower.pose().y(), Math.toDegrees(follower.pose().heading()), follower.localizer.velocity().vy ); // Run SOTM
 
             // Calculate drive powers for field centric control based on joystick input and robot heading, using Pedro's field centric driving
             DrivePowers powers = ManualDrive.fieldCentric(

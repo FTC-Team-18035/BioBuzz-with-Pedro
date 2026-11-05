@@ -18,8 +18,6 @@ public class Trajectory {
 
             double rawLaunchVelocity = ((1.0 / Math.cos(rawLaunchAngle)) * (Math.sqrt(g / (2.0 * a))));  //The launch velocity in cm/s
 
-            //double launchTPS = (rawLaunchVelocity * 28)/(7.2*Math.PI); //The launch velocity in ticks per second, able to be passed directly to the flywheel PIDF controller
-
             return rawLaunchVelocity; 
         }
 
