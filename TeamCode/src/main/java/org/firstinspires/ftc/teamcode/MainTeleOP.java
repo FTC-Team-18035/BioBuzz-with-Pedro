@@ -4,12 +4,15 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 //import Turret;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
+
+@TeleOp
 public class MainTeleOP extends LinearOpMode {
 
     private Follower follower;
@@ -40,8 +43,8 @@ public class MainTeleOP extends LinearOpMode {
         // Limelight.getTX and all that good stuff
         double distance = 0.0; // Placeholder for Limelight TX value
 
-        double LaunchVelocity= Trajectory.CalculateVelocity(distance);
-        double LaunchAngle=Trajectory.CalculateAngle(distance);
+        double LaunchVelocity = Trajectory.CalculateVelocity(distance);
+        double LaunchAngle = Trajectory.CalculateAngle(distance);
 
         // Turret.target(Limelight.getTX(), follower.pose().velocity().x, LaunchVelocity, LaunchAngle);
 
@@ -55,6 +58,10 @@ public class MainTeleOP extends LinearOpMode {
 
         ManualDrive.driveOrHold(follower, powers);
         follower.update();
+
+        telemetry.addData( "Current Pose ", follower.pose());
+        telemetry.addData( "Current Velocity ", follower.velocity());
+        telemetry.update();
     }
 }
 }
