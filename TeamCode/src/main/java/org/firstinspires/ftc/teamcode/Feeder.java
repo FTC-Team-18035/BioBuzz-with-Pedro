@@ -2,20 +2,25 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-/*@TeleOp
-public class Feeder extends LinearOpMode {
-    DcMotorEx feeder;
-    //@Override
-    public void runOpMode() {
-        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+@Utility
 
-        public void setFeedPower(double Power) {
-            feeder.setPower(-power);
+public class Feeder extends LinearOpMode {
+    DcMotor feeder;
+    @Override
+    public void runOpMode() {
+        feeder = hardwareMap.get(DcMotor.class, "feeder");
+
+       // public void setFeedPower (double Power) {
+         //   feeder.setPower(-Power);
         }
     }
+
+//}
+
 
 
 
