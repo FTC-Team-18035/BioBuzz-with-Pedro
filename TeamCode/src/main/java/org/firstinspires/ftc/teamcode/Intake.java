@@ -11,6 +11,9 @@ public class Intake extends LinearOpMode {
 
     public void runOpMode() {
         intake = hardwareMap.get(DcMotor.class, "intake");
+
+        waitForStart();
+        while (opModeIsActive()) {
         if (gamepad1.left_bumper) {
             intake.setPower(1.0);
         } else if (gamepad1.right_bumper) {
@@ -19,4 +22,5 @@ public class Intake extends LinearOpMode {
             intake.setPower(0.0);
         }
     }
+}
 }
