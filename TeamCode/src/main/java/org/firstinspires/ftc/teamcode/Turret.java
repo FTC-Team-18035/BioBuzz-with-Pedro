@@ -1,61 +1,65 @@
-/* 
-
 package org.firstinspires.ftc.teamcode;
 
-//import com.pedropathing.control.PIDFCoefficients;
-//import com.pedropathing.control.PIDFController;
-//import com.qualcomm.robotcore.hardware.CRServo;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
-import com.qualcomm.robotcore.util.Range;
-public class
 
-Turret {
-        private static final double SERVO_MIN = 0.1809;
-        private static final double SERVO_MAX = 0.2306;
-        private final DcMotorEx flywheelA;
-        private final DcMotorEx flywheelB;
-        private final Servo shooterAngleA;
-        private final Servo shooterAngleB;
-        //private final PIDFController leftController;
-        //private final PIDFController rightController;
-        private double targetVelocity;
-        private double currentServoPosition;
+public class Turret {
+    public double tax = 0; //cm The distance from the field wall to the first hive along the x axis TODO: Measure the actual distance
+    public double tbx = 0; //cm The distance from the field wall to the second hive along the x axis TODO: Measure the actual distance
+    public double ty = 0; //cm The distance from the field wall to the hives along the y axis TODO: Measure the actual distance
+    public double centerline = 182.88; //cm The center of the field, where the turret should switch its target to the other side's hive
+    private double tx;
+    private double distance;
+    private double absAngle;
+    private double launchVelocity;
+    private double launchAngle;
+    private double currentAngle;
+    private double targetAngle;
+    private double hiveAngle;
+    private double turretTargetAngle;
+    private DcMotorEx flywheelA;
+    private DcMotorEx flywheelB;
+    private DcMotorEx feeder;
 
-        public Turret(HardwareMap hardwareMap) {
-            flywheelA = hardwareMap.get(DcMotorEx.class, "left_shooter");
-            flywheelB = hardwareMap.get(DcMotorEx.class, "right_shooter");
-            shooterAngleA = hardwareMap.get(Servo.class, "shooter_horizontal");
-            shooterAngleB = hardwareMap.get(Servo.class, "shooter_vertical");
-            //leftController = new PIDFController(new PIDFCoefficients(0.005, 0, 0, 0.000544));
-            //rightController = new PIDFController(new PIDFCoefficients(0.005, 0, 0, 0.000544));
-            configureMotors();
-            setServoPosition(0.205); //TODO determine servo init position
-            targetVelocity = 0.0;
-        }
-    //Trajectory calculation based on targetDistance
-    //-----------------------------------------------------
-    public static double[] Calculate(double targetDistance) {
-        double distance = targetDistance + 15;
-        // define values used for all calculations
-        double g = 980.0; // cm/s^2 magnitude of acceleration due to gravity
-        double y0 = 53.0; // cm, target final height in goal
-        double m = Math.min(-1.5, (-200.0 - y0) / distance); // The SLOPE with which an artifact will enter the goal with. NOT AN ANGLE
-        double a = -(y0 / Math.pow(distance, 2)) + (m / distance); // The "a" value in the parabola equation
-        double b = ((2.0 * y0) / distance) - m; // The "b" value in the parabola equation
-        double rawlaunchAngle = Math.atan(b); // The launch angle in radians
-        //Degraded (hopefully) double launchVelocity = (1.0 / Math.cos(rawlaunchAngle)) * Math.sqrt(g / (2.0 * a));
-        double launchVelocity = ((1.0 / Math.cos(rawlaunchAngle)) * Math.sqrt(g / (2.0 * a))) * 1.23787177960363;  //12.21730476; //The launch velocity in cm/s
+    private final PIDFController flywheelAController;
+    private final PIDFController flywheelBController;
+    private final double kP = 0; // Proportional gain for shooter TODO: Tune
+    private final double kD = 0; // Derivative gain for shooter TODO: Tune
+    private final double kF = 0; // Feedforward gain for shooter TODO: Tune
 
-        double launchAngle = Math.toDegrees(rawlaunchAngle) * .00392157;
-        return new double[]{launchVelocity, launchAngle}; // these are the target for the shooter's flywheel and servo angle adjustments
+    public Turret(HardwareMap hardwareMap, PIDFController flywheelAController, PIDFController flywheelBController) {
+        flywheelA = hardwareMap.get(DcMotorEx.class, "flywheelA");
+        flywheelB = hardwareMap.get(DcMotorEx.class, "flywheelB");
+        this.flywheelAController = flywheelAController;
+        this.flywheelBController = flywheelBController;
+        flywheelAController = new PIDFController(kP, 0, kD, kF);
+        flywheelBController = new PIDFController(kP, 0, kD, kF);
+        flywheelB.setDirection(DcMotorEx.Direction.REVERSE);
     }
 
-    //-----------------------------------------------------
-    private void configureMotors() {
+    private Servo turretAzimuthA;
+    private Servo turretAzimuthB;
+    private Servo shooterAngleA;
+    private Servo shooterAngleB;
+
+    public Turret(PIDFController flywheelAController, PIDFController flywheelBController, Servo turretAzimuthA, Servo turretAzimuthB, Servo shooterAngleA, Servo shooterAngleB) {
+        this.flywheelAController = flywheelAController;
+        this.flywheelBController = flywheelBController;
+        this.feeder = feeder;
+        this.turretAzimuthA = turretAzimuthA;
+        this.turretAzimuthB = turretAzimuthB;
+        this.shooterAngleA = shooterAngleA;
+        this.shooterAngleB = shooterAngleB;
+    }
+
+    public void Initialize() {
+
         DcMotorEx[] motors = new DcMotorEx[]{flywheelA, flywheelB};
         for (DcMotorEx motor : motors) {
             MotorConfigurationType config = motor.getMotorType().clone();
@@ -65,82 +69,75 @@ Turret {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
+
+        flywheelA.setPower(0);
+        flywheelB.setPower(0);
+
+        feeder.setPower(0);
+
+        turretAzimuthA.setPosition(.5);
+        turretAzimuthB.setPosition(.5);
+
+        shooterAngleA.setPosition(0);
+        shooterAngleB.setPosition(0);
     }
 
-    private double clampServo(double position) {
-        return Range.clip(position, SERVO_MIN, SERVO_MAX);
+    public void target(double rx, double ry, double heading, double vy) {
+
+        if (rx <= centerline) {
+            tx = tax;
+        }
+        else if (rx > centerline) {
+            tx = tbx;
+        }
+
+        distance = Math.sqrt(Math.pow((tx-rx), 2) + Math.pow((ty-ry), 2)); // Calculate the distance to the correct target using the formula for distance between two points
+        absAngle = Math.atan((ty-ry)/(tx-rx)); // Calculate the angle from the robot's pose to the hive
+        turretTargetAngle = heading - absAngle; // Calculate the turret target angle relative to the chassis heading
+
+        launchVelocity = Trajectory.CalculateVelocity(distance);
+        launchAngle = Trajectory.CalculateAngle(distance);
+
+        // Calculate the aim offset based on the robot's translational velocity
+        double velocityOffset = -Math.atan(vy/(launchVelocity * Math.cos(launchAngle)));
+
+        turretTargetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
+        
+        if (targetAngle > 360) {
+            targetAngle -= 360; // Wrap around if the angle exceeds 360 degrees
+        } else if (targetAngle < 0) {
+            targetAngle += 360; // Wrap around if the angle is negative
+        }
+        double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
+        double negativeServoPosition = -servoPosition;
+        // Set the turret angle
+        turretAzimuthA.setPosition(servoPosition);
+        turretAzimuthB.setPosition(negativeServoPosition);
+        runFlywheel(launchVelocity);
     }
 
-    public void setServoPosition(double position) {           //Use for hood angle adjustment
-        currentServoPosition = clampServo(position);
-        shooterAngleA.setPosition(currentServoPosition);
-        shooterAngleB.setPosition(currentServoPosition);
+    public void runFlywheel(double launchVelocity) {
+        double launchTPS = (launchVelocity * 28)/(7.2*Math.PI);
+        flywheelAController.setSetPoint(launchTPS);
+        flywheelBController.setSetPoint(launchTPS);
+    }
+    public void feed() {
+        feeder.setPower(1);
     }
 
-    public void setTarget(double velocity, double anglePosition) {
-
-        targetVelocity = velocity;
-        setServoPosition(anglePosition);
+    public void stopFeeding() {
+        feeder.setPower(0);
     }
 
-    public void stop() {
-        targetVelocity = 0.0;
-        flywheelA.setPower(0.0);
-        flywheelB.setPower(0.0);
-        //leftController.reset();
-        //rightController.reset();
-        //setFeedPower(0);
+    public void stopFlywheel() {
+        flywheelA.setPower(0);
+        flywheelB.setPower(0);
     }
 
-    /*public void setPIDFCoefficients(PIDFCoefficients coefficients) {
-        // Apply identical gains to both controllers (clone to avoid shared state).
-        leftController.setCoefficients(new PIDFCoefficients(coefficients.P, coefficients.I, coefficients.D, coefficients.F));
-        rightController.setCoefficients(new PIDFCoefficients(coefficients.P, coefficients.I, coefficients.D, coefficients.F));
-    }*/
-
-   /* public void resetControllers() {
-        leftController.reset();
-        rightController.reset();
+    public void fullStop() {
+        feeder.setPower(0);
+        flywheelA.setPower(0);
+        flywheelB.setPower(0);
     }
-
-    public double getVelocityA() {
-        return flywheelA.getVelocity();
-    }
-
-    public  double getVelocityB() {
-        return flywheelB.getVelocity();
-    }
-    public double getTargetVelocity() {
-        return targetVelocity;
-    }
-
-    public double getServoPosition() {
-        return currentServoPosition;
-    }
-
-    public void update() {
-        //leftController.setTargetPosition(targetVelocity);
-       //rightController.setTargetPosition(-targetVelocity);
-        //leftController.updateFeedForwardInput(targetVelocity);
-        //rightController.updateFeedForwardInput(-targetVelocity);
-        //leftController.updatePosition(leftShooter.getVelocity());
-        //rightController.updatePosition(rightShooter.getVelocity());
-        //double leftPower = Range.clip(leftController.run(), -1.0, 1.0);
-        //double rightPower = Range.clip(rightController.run(), -1.0, 1.0);
-        //flywheelA.setPower(leftPower);
-        //flywheelB.setPower(rightPower);
-        // Keep servos locked to the last commanded, clamped position for safety
-        shooterAngleA.setPosition(currentServoPosition);
-        shooterAngleB.setPosition(currentServoPosition);
-    }
+    
 }
-
-//TODO add a method for a rotating turret that will line up with the correct hive cell using limelight
-//TODO if under any circumstances that the april tag is not visible, stop the shooter
-//TODO add a timer where if the april tag is not visible foe x amount of time, use pinpoint to face centerfield
-//TODO prevent wraparound
-
-    /**
-     * Shooter subsystem handling dual flywheel motors and angle servos.
-     * Target velocity is applied to both motors independently with separate PIDF controllers.
-     */
