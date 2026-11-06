@@ -6,10 +6,12 @@ import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.ManualDrive;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -22,7 +24,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 // ------------------ and the DECODE season scoring goal --------------------------------
 
 
-
+@Disabled
 
 
 @TeleOp(name = "StarterTeleOp")
@@ -88,6 +90,15 @@ public class StarterTeleOp extends LinearOpMode {
         private Follower follower;
         private ShooterSubsystem shooter;
         private DcMotorEx intake;
+        private DcMotorEx feeder;
+
+        private Servo turretAzimuthA;
+        private Servo turretAzimuthB;
+        private Servo shooterAngleA;
+        private Servo shooterAngleB;
+
+        private Servo flowerPickerA;
+        private Servo flowerPickerB;
 
         /* =========================================================
            SHOOTING STATE MACHINE
@@ -126,49 +137,47 @@ public class StarterTeleOp extends LinearOpMode {
         public void runOpMode() {
 
             /* ---------------- Hardware Initialization ---------------- */
-            // TODO create ShooterSubsystem class
-            shooter = new ShooterSubsystem(hardwareMap);
+            // TODO create Turret class
+            // turret = new Turret(hardwareMap);
+
+            // Create the Pedro follower
+            follower = Constants.create(hardwareMap);
 
             intake = hardwareMap.get(DcMotorEx.class, "intake");
             intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-            //lift = hardwareMap.get(DcMotorEx.class, "lift");
-            //lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            //lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            //lift.setTargetPosition(0);
-            //lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+            feeder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            feeder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            turretAzimuthA = hardwareMap.get(Servo.class, "turretAzimuthA");
+            turretAzimuthB = hardwareMap.get(Servo.class, "turretAzimuthB");
+
+            shooterAngleA = hardwareMap.get(Servo.class, "shooterAngleA");
+            shooterAngleB = hardwareMap.get(Servo.class, "shooterAngleB");
+
+            flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
+            flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
 
             limelight = hardwareMap.get(Limelight3A.class, "limelight");
             limelight.pipelineSwitch(6); // AprilTag pipeline
             limelight.start();
 
             /* ---------------- Drive / Localization Setup ---------------- */
-            // TODO Pedro Tuning creates these variables
-            /*MecanumConfig mecanumConstants = new MecanumConfig()
-                    .leftFrontMotorName("leftFrontDT")
-                    .leftRearMotorName("leftRearDT")
-                    .rightFrontMotorName("rightFrontDT")
-                    .rightRearMotorName("rightRearDT");       */
 
             // TODO Pedro Tuning creates these variables
             /*PinpointConfig pinpointConfig = new PinpointConfig()
                     .hardwareMapName("pinpoint");             */
 
-            follower = Constants.create(hardwareMap);
-
-
             waitForStart();
 
-            // Pedro 2 build method
-            /* follower.startTeleOpDrive();  */
 
             /* ---------------- Main Loop ---------------- */
             while (opModeIsActive()) {
                 handleDrive();
                 handleIntake();
                 handleShootingStateMachine();
-            //    handleLift();
 
                 handlePullBack(pullBackTicks);
 
