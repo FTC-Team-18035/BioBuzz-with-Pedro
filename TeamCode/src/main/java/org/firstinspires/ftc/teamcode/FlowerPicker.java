@@ -28,7 +28,7 @@ public class FlowerPicker extends LinearOpMode {
             } else {
                 servoA.setPosition(0);
             }
-            if (gamepad1.b) {
+            if (gamepad1.a) {
                 servoB.setPosition(1);
             } else {
                 servoB.setPosition(0);
