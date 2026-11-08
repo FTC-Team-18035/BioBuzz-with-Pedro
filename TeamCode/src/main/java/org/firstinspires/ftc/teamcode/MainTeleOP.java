@@ -17,6 +17,11 @@ public class MainTeleOP extends LinearOpMode {
 
     private ElapsedTime loopTime;
     private double loopFrequency;
+
+    private boolean flowerPickerState = false; // True = down, false = up
+    private double down = .5; // TODO: Determine the actual down position for the flower picker
+    private double up = .5; // TODO: Determine the actual up position for the flower picker
+
     private Turret Turret;
     private Follower follower;
 
@@ -54,6 +59,10 @@ public class MainTeleOP extends LinearOpMode {
 
         Turret.initialize(); // Zero the turret and hood
 
+        // Raise the flower picker for start
+        flowerPickerA.setPosition(up);
+        flowerPickerB.setPosition(up);
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -78,6 +87,11 @@ public class MainTeleOP extends LinearOpMode {
                     -gamepad1.right_stick_x,
                     follower.pose().heading()
             );
+
+            // Handle flower picker
+            if (gamepad1.dpadUpWasPressed()) {
+                flowerPickerState = !flowerPickerState;
+            }
 
             // Handle feeder
             if (gamepad1.left_trigger_pressed) {
@@ -105,6 +119,21 @@ public class MainTeleOP extends LinearOpMode {
                 feeder.setPower(0);
             }
 
+            // Update flower picker position
+            if (flowerPickerState) {
+                flowerPickerA.setPosition(down);
+                flowerPickerB.setPosition(down);
+            }
+            else {
+                flowerPickerA.setPosition(up);
+                flowerPickerB.setPosition(up);
+            }
+
+            // Update follower for field centric driving and SOTM
+            ManualDrive.driveOrHold(follower, powers);
+            follower.update();
+            follower.localizer.update();
+
             // Add telemetry for turret targeting
             telemetry.addData("Robot heading", heading);
             telemetry.addData("Turret commanded position", turretAzimuthPosition);
@@ -112,11 +141,9 @@ public class MainTeleOP extends LinearOpMode {
             // Add telemetry for looptimes
             loopFrequency = 1000/loopTime.milliseconds();
             telemetry.addData("Current loop frequency (hz)", loopFrequency);
-            telemetry.update();
 
-            ManualDrive.driveOrHold(follower, powers);
-            follower.update();
-            follower.localizer.update();
+            // Update telemetry
+            telemetry.update();
         }
     }
 }

@@ -5,13 +5,18 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.arcrobotics.ftclib.controller.PIDFController;
 
 public class Turret {
     public double tx = 58; //cm The distance from the field wall to the hives along the x axis
     public double tay = 52; //cm The distance from the field wall to the first hive along the y axis
     public double tby = 92; //cm The distance from the field wall to the second hive along the y axis
     public double centerline = 72; //cm The center of the field, where the turret should switch its target to the other side's hive
+
+    public double hoodServoMax = .5; // TODO: Determine actual max of the hood servo positions
+    public double hoodServoMin = .5; // TODO: Determine actual min of the hood servo positions
+    public double shooterMinAngle = 5; // degrees, minimum launch angle from horizontal
+    public double shooterMaxAngle = 25; // degrees, maximum launch angle from horizontal
+    public double hoodServoSetpoint;
     private double ty;
     private double distance;
     private double absAngle;
@@ -95,6 +100,7 @@ public class Turret {
 
         double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
 
+        setHoodAngle(launchAngle);
         runFlywheel(launchVelocity);
 
         return servoPosition;
@@ -104,6 +110,11 @@ public class Turret {
         double launchTPS = (launchVelocity * 28)/(7.2*Math.PI);
         flywheelA.setVelocity(launchTPS);
         flywheelB.setVelocity(launchTPS);
+    }
+    private void setHoodAngle(double launchAngle) {
+        hoodServoSetpoint = ((launchAngle - shooterMinAngle) / (shooterMaxAngle - shooterMinAngle)) * (hoodServoMax - hoodServoMin) + hoodServoMin;
+        shooterAngleA.setPosition(hoodServoSetpoint);
+        shooterAngleB.setPosition(hoodServoSetpoint);
     }
     public void feed() {
         feeder.setPower(1);
