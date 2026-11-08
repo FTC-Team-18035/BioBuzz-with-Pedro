@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.controller.PIDFController;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.pedropathing.drivetrain.DrivePowers;
@@ -9,15 +8,16 @@ import com.pedropathing.follower.ManualDrive;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp
 public class MainTeleOP extends LinearOpMode {
 
+    private ElapsedTime loopTime;
+    private double loopFrequency;
     private Turret Turret;
-
-
     private Follower follower;
 
     // Define motors and servos
@@ -33,12 +33,13 @@ public class MainTeleOP extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        // Create the Pedro follower
-
+        // Create the Pedro follower object
         follower = Constants.create(hardwareMap);
 
+        // Create the turret object
         Turret = new Turret(hardwareMap);
 
+        // Configure motors and servos for use
         intake = hardwareMap.get(DcMotorEx.class, "intake");
 
         feeder = hardwareMap.get(DcMotorEx.class, "feeder");
@@ -49,19 +50,23 @@ public class MainTeleOP extends LinearOpMode {
         turretAzimuthA = hardwareMap.get(Servo.class, "turretAzimuthA");
         turretAzimuthB = hardwareMap.get(Servo.class, "turretAzimuthB");
 
-        follower.setPose(new Pose(72,7,Math.toRadians(90))); // Make sure this is the robot's actual starting pose
+        follower.setPose(new Pose(72,7,Math.toRadians(90))); // Set robot's starting pose on field TODO: Make automatic using Limelight
 
         Turret.initialize(); // Zero the turret and hood
 
         waitForStart();
 
         while (opModeIsActive()) {
+            loopTime.reset();
+            loopTime.startTime();
+
+            // Get the robot's current pose and velocity for SOTM
             double rx = follower.localizer.pose().x();
             double ry = follower.localizer.pose().y();
             double heading = Math.toDegrees(follower.localizer.pose().heading());
-            double vy = follower.localizer.velocity().vy;
+            double vx = follower.localizer.velocity().vx;
 
-            double turretAzimuthPosition = Turret.target(rx, ry, heading, vy); // Run SOTM
+            double turretAzimuthPosition = Turret.target(rx, ry, heading, vx); // Calculate turret angle for SOTM (pre-compensated for translational velocity)
             // Set the turret angle
             turretAzimuthA.setPosition(turretAzimuthPosition);
             turretAzimuthB.setPosition(turretAzimuthPosition);
@@ -74,28 +79,39 @@ public class MainTeleOP extends LinearOpMode {
                     follower.pose().heading()
             );
 
-            if (gamepad1.left_bumper) {
-                intake.setPower(1);
-            }
-            else if (gamepad1.left_trigger_pressed) {
-                intake.setPower(-1);
-            }
-            else {
-                intake.setPower(0);
-            }
-
-            if (gamepad1.right_bumper) {
+            // Handle feeder
+            if (gamepad1.left_trigger_pressed) {
                 feeder.setPower(1);
-            }
-            else if (gamepad1.right_trigger_pressed) {
-                feeder.setPower(-1);
             }
             else {
                 feeder.setPower(0);
             }
 
+            // Handle intake
+            if (gamepad1.left_bumper) {
+                intake.setPower(1);
+            }
+            else {
+                intake.setPower(0);
+            }
+
+            // Handle intake and feeder simultaneously
+            if (gamepad1.right_trigger_pressed) {
+                intake.setPower(1);
+                feeder.setPower(1);
+            }
+            else {
+                intake.setPower(0);
+                feeder.setPower(0);
+            }
+
+            // Add telemetry for turret targeting
             telemetry.addData("Robot heading", heading);
             telemetry.addData("Turret commanded position", turretAzimuthPosition);
+
+            // Add telemetry for looptimes
+            loopFrequency = 1000/loopTime.milliseconds();
+            telemetry.addData("Current loop frequency (hz)", loopFrequency);
             telemetry.update();
 
             ManualDrive.driveOrHold(follower, powers);

@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 @TeleOp
 public class FlywheelTuner extends LinearOpMode {
     private DcMotorEx flywheelA;
-   // private DcMotorEx flywheelB;
+    private DcMotorEx flywheelB;
 
     private double kP = 0; // Proportional gain for shooter TODO: Tune
     private double kF = 0; // Feedforward gain for shooter TODO: Tune
@@ -28,14 +28,15 @@ public class FlywheelTuner extends LinearOpMode {
     public void runOpMode() {
 
         flywheelA= hardwareMap.get(DcMotorEx.class, "flywheelA");
-      //  flywheelB= hardwareMap.get(DcMotorEx.class, "flywheelB");
+        flywheelB= hardwareMap.get(DcMotorEx.class, "flywheelB");
 
         flywheelA.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-      //  flywheelB.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        flywheelA.setDirection(DcMotorEx.Direction.REVERSE);
+        flywheelB.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, 0, 0, kF);
         flywheelA.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-       // flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
         waitForStart();
 
@@ -65,10 +66,10 @@ public class FlywheelTuner extends LinearOpMode {
 
             pidfCoefficients = new PIDFCoefficients(kP, 0, 0, kF);
             flywheelA.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-          //  flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+            flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
             flywheelA.setVelocity(curTargetVelocity);
-           // flywheelB.setVelocity(-curTargetVelocity);
+            flywheelB.setVelocity(curTargetVelocity);
 
             double curVelocity = flywheelA.getVelocity();
             double error = curTargetVelocity - curVelocity;
