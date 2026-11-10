@@ -8,19 +8,15 @@ import com.pedropathing.follower.ManualDrive;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp
 public class MainTeleOP extends LinearOpMode {
-
-    private ElapsedTime loopTime;
-    private double loopFrequency;
-
     private boolean flowerPickerState = false; // True = down, false = up
     private double down = .5; // TODO: Determine the actual down position for the flower picker
     private double up = .5; // TODO: Determine the actual up position for the flower picker
+
 
     private Turret Turret;
     private Follower follower;
@@ -66,8 +62,6 @@ public class MainTeleOP extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            loopTime.reset();
-            loopTime.startTime();
 
             // Get the robot's current pose and velocity for SOTM
             double rx = follower.localizer.pose().x();
@@ -137,10 +131,6 @@ public class MainTeleOP extends LinearOpMode {
             // Add telemetry for turret targeting
             telemetry.addData("Robot heading", heading);
             telemetry.addData("Turret commanded position", turretAzimuthPosition);
-
-            // Add telemetry for looptimes
-            loopFrequency = 1000/loopTime.milliseconds();
-            telemetry.addData("Current loop frequency (hz)", loopFrequency);
 
             // Update telemetry
             telemetry.update();

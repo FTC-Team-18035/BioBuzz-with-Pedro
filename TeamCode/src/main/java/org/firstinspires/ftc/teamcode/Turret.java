@@ -100,39 +100,35 @@ public class Turret {
 
         double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
 
-        setHoodAngle(launchAngle);
-        runFlywheel(launchVelocity);
+        setHoodAngle(launchAngle); // Runs the hood servos to the calculated launch angle
+        runFlywheel(launchVelocity); // Runs the flywheel motors to the calculated launch velocity
 
         return servoPosition;
     }
 
     private void runFlywheel(double launchVelocity) {
+        /*
+        The following line converts the output of the Trajectory class (cm/s) into output acceptable to the flywheel PIDF controller (ticks per second).
+        Note that because we are using a hooded shooter, the linear velocity of the pollen (launch velocity) is exactly half of the tangential
+        velocity of the flywheel due to rolling ball physics. This is already taken into account.
+         */
         double launchTPS = (launchVelocity * 28)/(7.2*Math.PI);
+
+        // Set the flywheel motor controllers to the correct calculated velocity
         flywheelA.setVelocity(launchTPS);
         flywheelB.setVelocity(launchTPS);
     }
     private void setHoodAngle(double launchAngle) {
+        // Maps the launch angle input to the corresponding value within the hood servos' range
         hoodServoSetpoint = ((launchAngle - shooterMinAngle) / (shooterMaxAngle - shooterMinAngle)) * (hoodServoMax - hoodServoMin) + hoodServoMin;
+
+        // Sets both hood servos to the calculated position
         shooterAngleA.setPosition(hoodServoSetpoint);
         shooterAngleB.setPosition(hoodServoSetpoint);
-    }
-    public void feed() {
-        feeder.setPower(1);
-    }
-
-    public void stopFeeding() {
-        feeder.setPower(0);
     }
 
     public void stopFlywheel() {
         flywheelA.setVelocity(0);
         flywheelB.setVelocity(0);
     }
-
-    public void emergencyStop() {
-        feeder.setPower(0);
-        flywheelA.setPower(0);
-        flywheelB.setPower(0);
-    }
-
 }

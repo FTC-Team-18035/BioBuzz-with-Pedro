@@ -2,8 +2,8 @@
 
 ## <span style="color: #803282">Control Hub</span>
 > ### Motors
- - motor0-"flyWheelA"
- - motor1-"flyWheelB"
+ - motor0-"flywheelA"
+ - motor1-"flywheelB"
  - motor2-"intake"
  - motor3-"feeder"
 

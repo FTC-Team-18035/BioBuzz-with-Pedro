@@ -1,5 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+
+/*
+This class contains all of the calculus based trajectory calculation for pollen being fired.
+Alternatively we could have used a look up table style of testing different launch velocities
+and measuring the distance the pollen traveled, but this is more fun.
+ */
 public class Trajectory {
     public static double CalculateVelocity(double targetDistance) {
             targetDistance = targetDistance + 0; // TODO: Change this value to offset over or under shooting
