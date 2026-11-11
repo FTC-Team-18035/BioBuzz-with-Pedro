@@ -30,15 +30,15 @@ public class ServoPositionDisplay extends LinearOpMode {
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
 
-        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        //intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+        //feeder = hardwareMap.get(DcMotorEx.class, "feeder");
 
-        feeder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        feeder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        feeder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //feeder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        //feeder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //feeder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         turretAzimuthA = hardwareMap.get(Servo.class, "turretAzimuthA");
         turretAzimuthB = hardwareMap.get(Servo.class, "turretAzimuthB");
@@ -47,17 +47,18 @@ public class ServoPositionDisplay extends LinearOpMode {
         shooterAngleA = hardwareMap.get(Servo.class, "shooterAngleA");
         shooterAngleB = hardwareMap.get(Servo.class, "shooterAngleB");
 
-        flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
-        flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
+        //flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
+        //flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
 
         // initial servo starting positions
         initialize();
 
+
         // display instructions on driver hub
         telemetry.addLine("Hold X button to run intake/feeder");
         telemetry.addLine("Use left stick x to aim the turret");
-        telemetry.addLine("Use right stick y forward to lower the flower picker");
-        telemetry.addLine("Use left trigger for shooter angle");
+        //telemetry.addLine("Use right stick y forward to lower the flower picker");
+        telemetry.addLine("Use right stick y for shooter angle");
         telemetry.update();
 
         waitForStart();
@@ -66,8 +67,8 @@ public class ServoPositionDisplay extends LinearOpMode {
 
             // get controller input
             double positionturret = (gamepad1.left_stick_x + 1) / 2;
-            double positionpicker = Math.min(0, -gamepad1.right_stick_y);
-            float positionangle = gamepad1.left_trigger;
+            double positionangle = (gamepad1.right_stick_y + 1) / 2;
+            //float positionangle = gamepad1.right_stick_y;
             double powerin;
             if (gamepad1.x) { powerin = 1; } else { powerin = 0; }
 
@@ -78,19 +79,19 @@ public class ServoPositionDisplay extends LinearOpMode {
             shooterAngleA.setPosition(positionangle);
             shooterAngleB.setPosition(positionangle);
 
-            flowerPickerA.setPosition(positionpicker);
-            flowerPickerB.setPosition(positionpicker);
+            //flowerPickerA.setPosition(positionpicker);
+            //flowerPickerB.setPosition(positionpicker);
 
-            intake.setPower(powerin);
-            feeder.setPower(powerin);
+            //intake.setPower(powerin);
+            //feeder.setPower(powerin);
 
             // display values on driver station
             telemetry.addData("turretA Position", turretAzimuthA.getPosition());
             telemetry.addData("turretB Position", turretAzimuthB.getPosition());
             telemetry.addData("shooterA Position", shooterAngleA.getPosition());
             telemetry.addData("shooterB Position", shooterAngleB.getPosition());
-            telemetry.addData("flowerPickerA Position", flowerPickerA.getPosition());
-            telemetry.addData("flowerPickerB Position", flowerPickerB.getPosition());
+            //telemetry.addData("flowerPickerA Position", flowerPickerA.getPosition());
+            //telemetry.addData("flowerPickerB Position", flowerPickerB.getPosition());
             telemetry.update();
 
         }
@@ -102,14 +103,14 @@ public class ServoPositionDisplay extends LinearOpMode {
 
     private void initialize() {
         // initial servo starting positions
-        intake.setPower(0);
-        feeder.setPower(0);
+        //intake.setPower(0);
+        //feeder.setPower(0);
         turretAzimuthA.setPosition(.5);
         turretAzimuthB.setPosition(.5);
-        shooterAngleA.setPosition(0);
-        shooterAngleB.setPosition(0);
-        flowerPickerA.setPosition(0);
-        flowerPickerB.setPosition(0);
+        shooterAngleA.setPosition(0.5);
+        shooterAngleB.setPosition(0.5);
+        //flowerPickerA.setPosition(0);
+        //flowerPickerB.setPosition(0);
     }
 
 }

@@ -7,13 +7,13 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class Turret {
-    public double tx = 58; //cm The distance from the field wall to the hives along the x axis
+    public double tx = 58; //in The distance from the field wall to the hives along the x axis
     public double tay = 52; //cm The distance from the field wall to the first hive along the y axis
     public double tby = 92; //cm The distance from the field wall to the second hive along the y axis
     public double centerline = 72; //cm The center of the field, where the turret should switch its target to the other side's hive
 
-    public double hoodServoMax = .5; // TODO: Determine actual max of the hood servo positions
-    public double hoodServoMin = .5; // TODO: Determine actual min of the hood servo positions
+    public double hoodServoMax = .7762; //
+    public double hoodServoMin = .5; //
     public double shooterMinAngle = 5; // degrees, minimum launch angle from horizontal
     public double shooterMaxAngle = 25; // degrees, maximum launch angle from horizontal
     public double hoodServoSetpoint;
