@@ -16,8 +16,12 @@ public class FlywheelTuner extends LinearOpMode {
     private DcMotorEx flywheelA;
     private DcMotorEx flywheelB;
 
-    private double kP = 0; // Proportional gain for shooter TODO: Tune
-    private double kF = 0; // Feedforward gain for shooter TODO: Tune
+    private DcMotorEx intake;
+    private DcMotorEx feeder;
+
+    private double kP = 6.411; // Proportional gain for shooter TODO: Tune
+    private double kF = .903; // Feedforward gain for shooter TODO: Tune
+    private double kD = 5.4;
     private double curTargetVelocity;
     private double highVelocity = 2000;
     private double lowVelocity = 900;
@@ -30,11 +34,14 @@ public class FlywheelTuner extends LinearOpMode {
         flywheelA= hardwareMap.get(DcMotorEx.class, "flywheelA");
         flywheelB= hardwareMap.get(DcMotorEx.class, "flywheelB");
 
+        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+
         flywheelA.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         flywheelA.setDirection(DcMotorEx.Direction.REVERSE);
         flywheelB.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, 0, 0, kF);
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, 0, kD, kF);
         flywheelA.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
@@ -63,15 +70,24 @@ public class FlywheelTuner extends LinearOpMode {
             if (gamepad1.dpadUpWasPressed()) {
                 kP -= stepSizes[stepIndex];
             }
+            if (gamepad1.left_bumper) {
+                kD += stepSizes[stepIndex];
+            }
+            if (gamepad1.right_bumper) {
+                kD -= stepSizes[stepIndex];
+            }
 
-            pidfCoefficients = new PIDFCoefficients(kP, 0, 0, kF);
+            pidfCoefficients = new PIDFCoefficients(kP, 0, kD, kF);
             flywheelA.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
             flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
             flywheelA.setVelocity(curTargetVelocity);
             flywheelB.setVelocity(curTargetVelocity);
 
-            double curVelocity = flywheelA.getVelocity();
+            feeder.setPower(gamepad1.right_trigger);
+            intake.setPower(gamepad1.right_trigger);
+
+            double curVelocity = -flywheelA.getVelocity();
             double error = curTargetVelocity - curVelocity;
 
             telemetry.addData("Target Velocity", curTargetVelocity);
@@ -80,6 +96,7 @@ public class FlywheelTuner extends LinearOpMode {
             telemetry.addLine("------------------------------");
             telemetry.addData("Tuning kP", "%.4f (D-Pad U/D)", kP);
             telemetry.addData("Tuning kF", "%.4f (D-Pad L/R)", kF);
+            telemetry.addData("Tuning kD", "%.4f (Bumper Left/Right)", kD);
             telemetry.addData("Step Size", "%.4f (B Button)", stepSizes[stepIndex]);
             telemetry.update();
     }

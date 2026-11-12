@@ -34,9 +34,9 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
     private final Pose point2Control1 = poseFactory.of(57.8932, 35.4753, 0);
     private final Pose point2Control2 = poseFactory.of(39.383, 46.9364, 0);
     // Proceed to Flower after picker/intake engaged
-    private final Pose point3 = poseFactory.of(8.6646, 46.9673, 180);
+    private final Pose point3 = poseFactory.of(17, 46.9673, 180);
     // Return to shooting position in front of Hive
-    private final Pose point4Start = poseFactory.of(8.6646, 46.9673, 180);
+    private final Pose point4Start = poseFactory.of(17, 46.9673, 180);
     private final Pose point4 = poseFactory.of(58, 29, 90);
 
     // Autonomous routine

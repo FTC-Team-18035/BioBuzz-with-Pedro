@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-
+@Config
 public class Turret {
     public double tx = 58; //in The distance from the field wall to the hives along the x axis
     public double tay = 52; //cm The distance from the field wall to the first hive along the y axis
@@ -34,19 +35,24 @@ public class Turret {
     public Servo turretAzimuthB;
     public Servo shooterAngleA;
     public Servo shooterAngleB;
+    public static double launchAdditive = 72;
 
-    private double kP = 0; // Proportional gain for shooter TODO: Replace with the tuned value from "FlywheelTuner.java"
-    private double kF = 0; // Feedforward gain for shooter TODO: Replace with the tuned value from "FlywheelTuner.java"
+    private double kP = 6.411; // Proportional gain for shooter TODO: Replace with the tuned value from "FlywheelTuner.java"
+    private double kF = .903; // Feedforward gain for shooter TODO: Replace with the tuned value from "FlywheelTuner.java"
+    private double kD = 5.4;
 
 
     public Turret(HardwareMap hardwareMap) {
+
+        flywheelA = hardwareMap.get(DcMotorEx.class, "flywheelA");
+        flywheelB = hardwareMap.get(DcMotorEx.class, "flywheelB");
 
         // Configure shooter motors, servos, and PIDF controllers
         flywheelA.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         flywheelA.setDirection(DcMotorEx.Direction.REVERSE);
         flywheelB.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, 0, 0, kF);
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(kP, 0, kD, kF);
         flywheelA.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         flywheelB.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
@@ -112,7 +118,9 @@ public class Turret {
         Note that because we are using a hooded shooter, the linear velocity of the pollen (launch velocity) is exactly half of the tangential
         velocity of the flywheel due to rolling ball physics. This is already taken into account.
          */
-        double launchTPS = (launchVelocity * 28)/(7.2*Math.PI);
+        double launchTPS = (launchVelocity * 72)/(7.2*Math.PI);
+
+       // double launchTPS = (launchVelocity * launchAdditive)/(7.2*Math.PI);
 
         // Set the flywheel motor controllers to the correct calculated velocity
         flywheelA.setVelocity(launchTPS);
