@@ -6,6 +6,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.concurrent.TimeUnit;
+
 @Config
 public class Turret {
     public double tx = 58; //in The distance from the field wall to the hives along the x axis
@@ -26,6 +30,29 @@ public class Turret {
     private double currentAngle;
     private double targetAngle;
 
+    private double lastX = 0;
+    private double lastY = 0;
+    private double lastHeading = 0;
+
+    public double nextX;
+    public double nextY;
+    public double nextHeading;
+    public ElapsedTime loopTime;
+    public double lastTime;
+    public double currentTime;
+    public double deltaT;
+    public double xVelocity;
+    public double yVelocity;
+    public double headingVelocity;
+    public double nextVelocity;
+    public double lastVelocity = 0;
+    public double acceleration;
+
+    public double deltaX;
+    public double deltaY;
+    public double deltaHeading;
+    public double deltaVelocity;
+
     private double turretTargetAngle;
     private DcMotorEx flywheelA;
     private DcMotorEx flywheelB;
@@ -35,10 +62,10 @@ public class Turret {
     public Servo turretAzimuthB;
     public Servo shooterAngleA;
     public Servo shooterAngleB;
-    public static double launchAdditive = 72;
+    public static double launchVelocityMultiplier = 2.57;
 
-    private double kP = 6.411; // Proportional gain for shooter TODO: Replace with the tuned value from "FlywheelTuner.java"
-    private double kF = .903; // Feedforward gain for shooter TODO: Replace with the tuned value from "FlywheelTuner.java"
+    private double kP = 6.411;
+    private double kF = .903;
     private double kD = 5.4;
 
 
@@ -64,6 +91,7 @@ public class Turret {
     }
 
     public void initialize() {
+        loopTime.reset();
 
         flywheelA.setVelocity(0);
         flywheelB.setVelocity(0);
@@ -78,30 +106,38 @@ public class Turret {
     }
 
     public double target(double rx, double ry, double heading, double vx) {
+        // Get the current to calculate the elapsed time from the last loop
+        currentTime = loopTime.now(TimeUnit.MICROSECONDS);
+        deltaT = currentTime-lastTime;
 
-        if (ry <= centerline) {
+        // Call the method for predictive SOTM tracking. Function explained in its declaration
+        calculateNextPose(lastX, lastY, lastHeading, lastVelocity, rx, ry, heading, vx, deltaT);
+
+        // Figure out which hive to target based on the robot's position
+        if (nextX <= centerline) {
             ty = tay;
         }
-        else if (ry > centerline) {
-            tx = tby;
+        else if (nextY > centerline) {
+            ty = tby;
         }
 
-        distance = Math.sqrt(Math.pow((tx-rx), 2) + Math.pow((ty-ry), 2)); // Calculate the distance to the correct target using the formula for distance between two points
-        absAngle = Math.toDegrees(Math.atan2((ty-ry), (tx-rx))); // Calculate the angle from the robot's pose to the hive
-        targetAngle = heading - absAngle + 180; // Calculate the turret target angle relative to the chassis heading
+        distance = Math.sqrt(Math.pow((tx-nextX), 2) + Math.pow((ty-nextY), 2)); // Calculate the distance to the correct target using the formula for distance between two points
+        absAngle = Math.toDegrees(Math.atan2((ty-nextY), (tx-nextX))); // Calculate the angle from the robot's pose to the hive
+        targetAngle = nextHeading - absAngle + 180; // Calculate the turret target angle relative to the chassis heading
 
+        // Use the trajectory class to calculate the required launch velocity and angle to goal
         launchVelocity = Trajectory.CalculateVelocity(distance);
         launchAngle = Trajectory.CalculateAngle(distance);
 
         //Calculate the aim offset based on the robot's translational velocity
-        double velocityOffset = Math.atan(vx/(launchVelocity * Math.cos(launchAngle)));
+        double velocityOffset = Math.atan(nextVelocity/(launchVelocity * Math.cos(launchAngle)));
 
         targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
 
         if (targetAngle >= 360) {
-            targetAngle = targetAngle - 360; // Wrap around if the angle exceeds 360 degrees
+            targetAngle = 180; // Wrap around if the angle exceeds 360 degrees
         } else if (targetAngle <= 0) {
-            targetAngle = targetAngle + 360; // Wrap around if the angle is negative
+            targetAngle = 180; // Wrap around if the angle is negative
         }
 
         double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
@@ -109,7 +145,36 @@ public class Turret {
         setHoodAngle(launchAngle); // Runs the hood servos to the calculated launch angle
         runFlywheel(launchVelocity); // Runs the flywheel motors to the calculated launch velocity
 
+        // Set all current values used to their last counterparts for calculations in the next loop
+        lastTime = currentTime;
+        lastX = rx;
+        lastY = ry;
+        lastHeading = heading;
+        lastVelocity = vx;
+
         return servoPosition;
+    }
+
+    private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double x, double y, double heading, double velocity, double deltaT){
+        /*
+        This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position is going to be the next loop, to
+        compensate for system latency (both hardware and software).
+         */
+
+        xVelocity = (x-lastX)/deltaT; // inches per microsecond
+        yVelocity = (y-lastY)/deltaT; // inches per microsecond
+        headingVelocity = (heading-lastHeading)/deltaT; // radians per microsecond
+        acceleration = (velocity-lastVelocity)/deltaT; // cm per microsecond^2
+
+        deltaX = xVelocity*deltaT;
+        deltaY = yVelocity*deltaT;
+        deltaHeading = headingVelocity*deltaT;
+        deltaVelocity = acceleration*deltaT;
+
+        nextX = deltaX + x;
+        nextY = deltaY + y;
+        nextHeading = deltaHeading + heading;
+        nextVelocity = deltaVelocity + velocity;
     }
 
     private void runFlywheel(double launchVelocity) {
@@ -118,7 +183,7 @@ public class Turret {
         Note that because we are using a hooded shooter, the linear velocity of the pollen (launch velocity) is exactly half of the tangential
         velocity of the flywheel due to rolling ball physics. This is already taken into account.
          */
-        double launchTPS = (launchVelocity * 72)/(7.2*Math.PI);
+        double launchTPS = ((launchVelocity * 28)/(7.2*Math.PI))*launchVelocityMultiplier;
 
        // double launchTPS = (launchVelocity * launchAdditive)/(7.2*Math.PI);
 
