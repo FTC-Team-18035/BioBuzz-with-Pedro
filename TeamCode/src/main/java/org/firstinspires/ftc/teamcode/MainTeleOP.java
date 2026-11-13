@@ -28,9 +28,6 @@ public class MainTeleOP extends LinearOpMode {
     private Servo flowerPickerA;
     private Servo flowerPickerB;
 
-    private Servo turretAzimuthA;
-    private Servo turretAzimuthB;
-
 
     @Override
     public void runOpMode() {
@@ -47,9 +44,6 @@ public class MainTeleOP extends LinearOpMode {
 
      //   flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
     //    flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
-
-        turretAzimuthA = hardwareMap.get(Servo.class, "turretAzimuthA");
-        turretAzimuthB = hardwareMap.get(Servo.class, "turretAzimuthB");
 
         follower.setPose(new Pose(72,7,Math.toRadians(90))); // Set robot's starting pose on field TODO: Make automatic using Limelight
 
@@ -69,10 +63,7 @@ public class MainTeleOP extends LinearOpMode {
             double heading = Math.toDegrees(follower.localizer.pose().heading());
             double vx = follower.localizer.velocity().vx;
 
-            double turretAzimuthPosition = Turret.target(rx, ry, heading, vx); // Calculate turret angle for SOTM (pre-compensated for translational velocity)
-            // Set the turret angle
-            turretAzimuthA.setPosition(turretAzimuthPosition);
-            turretAzimuthB.setPosition(turretAzimuthPosition);
+            Turret.target(rx, ry, heading, vx); // Calculate turret angle for SOTM (pre-compensated for translational velocity)
 
             // Calculate drive powers for field centric control based on joystick input and robot heading, using Pedro's field centric driving
             DrivePowers powers = ManualDrive.fieldCentric(
@@ -127,13 +118,6 @@ public class MainTeleOP extends LinearOpMode {
             ManualDrive.driveOrHold(follower, powers);
             follower.update();
             follower.localizer.update();
-
-            // Add telemetry for turret targeting
-            telemetry.addData("Robot heading", heading);
-            telemetry.addData("Turret commanded position", turretAzimuthPosition);
-
-            // Update telemetry
-            telemetry.update();
         }
     }
 }

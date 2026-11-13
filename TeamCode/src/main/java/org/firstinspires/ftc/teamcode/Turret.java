@@ -27,7 +27,6 @@ public class Turret {
     private double absAngle;
     private double launchVelocity;
     private double launchAngle;
-    private double currentAngle;
     private double targetAngle;
 
     private double lastX = 0;
@@ -37,23 +36,8 @@ public class Turret {
     public double nextX;
     public double nextY;
     public double nextHeading;
-    public ElapsedTime loopTime;
-    public double lastTime;
-    public double currentTime;
-    public double deltaT;
-    public double xVelocity;
-    public double yVelocity;
-    public double headingVelocity;
     public double nextVelocity;
     public double lastVelocity = 0;
-    public double acceleration;
-
-    public double deltaX;
-    public double deltaY;
-    public double deltaHeading;
-    public double deltaVelocity;
-
-    private double turretTargetAngle;
     private DcMotorEx flywheelA;
     private DcMotorEx flywheelB;
     private DcMotorEx feeder;
@@ -85,13 +69,12 @@ public class Turret {
 
         this.turretAzimuthA = hardwareMap.get(Servo.class, "turretAzimuthA");
         this.turretAzimuthB = hardwareMap.get(Servo.class, "turretAzimuthB");
-        this.shooterAngleA  = hardwareMap.get(Servo.class, "shooterAngleA");
-        this.shooterAngleB  = hardwareMap.get(Servo.class, "shooterAngleB");
-        this.feeder         = hardwareMap.get(DcMotorEx.class, "feeder");
+        this.shooterAngleA = hardwareMap.get(Servo.class, "shooterAngleA");
+        this.shooterAngleB = hardwareMap.get(Servo.class, "shooterAngleB");
+        this.feeder = hardwareMap.get(DcMotorEx.class, "feeder");
     }
 
     public void initialize() {
-        loopTime.reset();
 
         flywheelA.setVelocity(0);
         flywheelB.setVelocity(0);
@@ -105,76 +88,53 @@ public class Turret {
         shooterAngleB.setPosition(.5);
     }
 
-    public double target(double rx, double ry, double heading, double vx) {
-        // Get the current to calculate the elapsed time from the last loop
-        currentTime = loopTime.now(TimeUnit.MICROSECONDS);
-        deltaT = currentTime-lastTime;
+    public void target(double rx, double ry, double heading, double vx) {
 
         // Call the method for predictive SOTM tracking. Function explained in its declaration
-        calculateNextPose(lastX, lastY, lastHeading, lastVelocity, rx, ry, heading, vx, deltaT);
+        calculateNextPose(lastX, lastY, lastHeading, lastVelocity, rx, ry, heading, vx);
 
         // Figure out which hive to target based on the robot's position
-        if (nextX <= centerline) {
+        if (nextY <= centerline) {
             ty = tay;
-        }
-        else if (nextY > centerline) {
+        } else if (nextY > centerline) {
             ty = tby;
         }
 
-        distance = Math.sqrt(Math.pow((tx-nextX), 2) + Math.pow((ty-nextY), 2)); // Calculate the distance to the correct target using the formula for distance between two points
-        absAngle = Math.toDegrees(Math.atan2((ty-nextY), (tx-nextX))); // Calculate the angle from the robot's pose to the hive
+        distance = Math.sqrt(Math.pow((tx - nextX), 2) + Math.pow((ty - nextY), 2)); // Calculate the distance to the correct target using the formula for distance between two points
+        absAngle = Math.toDegrees(Math.atan2((ty - nextY), (tx - nextX))); // Calculate the angle from the robot's pose to the hive
         targetAngle = nextHeading - absAngle + 180; // Calculate the turret target angle relative to the chassis heading
 
         // Use the trajectory class to calculate the required launch velocity and angle to goal
         launchVelocity = Trajectory.CalculateVelocity(distance);
         launchAngle = Trajectory.CalculateAngle(distance);
 
-        //Calculate the aim offset based on the robot's translational velocity
-        double velocityOffset = Math.atan(nextVelocity/(launchVelocity * Math.cos(launchAngle)));
+        // Calculate the aim offset based on the robot's translational velocity
+        double velocityOffset = Math.atan(nextVelocity / (launchVelocity * Math.cos(launchAngle)));
 
         targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
 
-        if (targetAngle >= 360) {
-            targetAngle = 180; // Wrap around if the angle exceeds 360 degrees
-        } else if (targetAngle <= 0) {
-            targetAngle = 180; // Wrap around if the angle is negative
-        }
-
-        double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
-
+        setAzimuthAngle(targetAngle);
         setHoodAngle(launchAngle); // Runs the hood servos to the calculated launch angle
         runFlywheel(launchVelocity); // Runs the flywheel motors to the calculated launch velocity
 
         // Set all current values used to their last counterparts for calculations in the next loop
-        lastTime = currentTime;
         lastX = rx;
         lastY = ry;
         lastHeading = heading;
         lastVelocity = vx;
-
-        return servoPosition;
     }
 
-    private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double x, double y, double heading, double velocity, double deltaT){
+    private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double x, double y, double heading, double velocity) {
+
         /*
-        This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position is going to be the next loop, to
+        This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
         compensate for system latency (both hardware and software).
          */
 
-        xVelocity = (x-lastX)/deltaT; // inches per microsecond
-        yVelocity = (y-lastY)/deltaT; // inches per microsecond
-        headingVelocity = (heading-lastHeading)/deltaT; // radians per microsecond
-        acceleration = (velocity-lastVelocity)/deltaT; // cm per microsecond^2
-
-        deltaX = xVelocity*deltaT;
-        deltaY = yVelocity*deltaT;
-        deltaHeading = headingVelocity*deltaT;
-        deltaVelocity = acceleration*deltaT;
-
-        nextX = deltaX + x;
-        nextY = deltaY + y;
-        nextHeading = deltaHeading + heading;
-        nextVelocity = deltaVelocity + velocity;
+        nextX = (x - lastX) + x;
+        nextY = (y - lastY) + y;
+        nextHeading = (heading - lastHeading) + heading;
+        nextVelocity = (velocity - lastVelocity) + velocity;
     }
 
     private void runFlywheel(double launchVelocity) {
@@ -183,14 +143,15 @@ public class Turret {
         Note that because we are using a hooded shooter, the linear velocity of the pollen (launch velocity) is exactly half of the tangential
         velocity of the flywheel due to rolling ball physics. This is already taken into account.
          */
-        double launchTPS = ((launchVelocity * 28)/(7.2*Math.PI))*launchVelocityMultiplier;
+        double launchTPS = ((launchVelocity * 28) / (7.2 * Math.PI)) * launchVelocityMultiplier;
 
-       // double launchTPS = (launchVelocity * launchAdditive)/(7.2*Math.PI);
+        // double launchTPS = (launchVelocity * launchAdditive)/(7.2*Math.PI);
 
         // Set the flywheel motor controllers to the correct calculated velocity
         flywheelA.setVelocity(launchTPS);
         flywheelB.setVelocity(launchTPS);
     }
+
     private void setHoodAngle(double launchAngle) {
         // Maps the launch angle input to the corresponding value within the hood servos' range
         hoodServoSetpoint = ((launchAngle - shooterMinAngle) / (shooterMaxAngle - shooterMinAngle)) * (hoodServoMax - hoodServoMin) + hoodServoMin;
@@ -198,6 +159,21 @@ public class Turret {
         // Sets both hood servos to the calculated position
         shooterAngleA.setPosition(hoodServoSetpoint);
         shooterAngleB.setPosition(hoodServoSetpoint);
+    }
+
+    private void setAzimuthAngle(double targetAngle) {
+
+        if (targetAngle >= 360) {
+            targetAngle = 180; // Wrap around if the angle exceeds 360 degrees using a waypoint
+        } else if (targetAngle <= 0) {
+            targetAngle = 180; // Wrap around if the angle is negative using a waypoint
+        }
+
+        double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
+
+        // Set servo positions
+        turretAzimuthA.setPosition(servoPosition);
+        turretAzimuthB.setPosition(servoPosition);
     }
 
     public void stopFlywheel() {
