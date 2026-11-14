@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import java.util.concurrent.TimeUnit;
 
 @Config
 public class Turret {
@@ -21,6 +20,8 @@ public class Turret {
     public double hoodServoMin = .5; //
     public double shooterMinAngle = 5; // degrees, minimum launch angle from horizontal
     public double shooterMaxAngle = 25; // degrees, maximum launch angle from horizontal
+    public double turretSecondsPerDegree = 0.00183333; // Used for predictive tracking based on how long turret adjustment will take
+    private double turretTimeToGoal;
     public double hoodServoSetpoint;
     private double ty;
     private double distance;
@@ -28,11 +29,19 @@ public class Turret {
     private double launchVelocity;
     private double launchAngle;
     private double targetAngle;
+    private double azimuth;
+    private double nextAzimuthAdjustment;
 
+    private ElapsedTime loopTime;
+    private double lastTime = 0;
+    private double currentTime;
     private double lastX = 0;
     private double lastY = 0;
     private double lastHeading = 0;
+    private double lastAzimuth = 0;
 
+    private double deltaT;
+    private double azimuthVelocity;
     public double nextX;
     public double nextY;
     public double nextHeading;
@@ -46,6 +55,8 @@ public class Turret {
     public Servo turretAzimuthB;
     public Servo shooterAngleA;
     public Servo shooterAngleB;
+    public AnalogInput azimuthEncoder;
+    public double degrees;
     public static double launchVelocityMultiplier = 2.57;
 
     private double kP = 6.411;
@@ -54,6 +65,9 @@ public class Turret {
 
 
     public Turret(HardwareMap hardwareMap) {
+        loopTime = new ElapsedTime();
+
+        AnalogInput azimuthEncoder = hardwareMap.get(AnalogInput.class, "azimuthBEncoder");
 
         flywheelA = hardwareMap.get(DcMotorEx.class, "flywheelA");
         flywheelB = hardwareMap.get(DcMotorEx.class, "flywheelB");
@@ -89,9 +103,13 @@ public class Turret {
     }
 
     public void target(double rx, double ry, double heading, double vx) {
+        lastTime = currentTime;
+        currentTime = loopTime.seconds();
+        deltaT = currentTime-lastTime;
+        azimuth = convertEncoder(azimuthEncoder.getVoltage());
 
         // Call the method for predictive SOTM tracking. Function explained in its declaration
-        calculateNextPose(lastX, lastY, lastHeading, lastVelocity, rx, ry, heading, vx);
+        calculateNextPose(lastX, lastY, lastHeading, lastVelocity, lastAzimuth, rx, ry, heading, vx, azimuth, deltaT);
 
         // Figure out which hive to target based on the robot's position
         if (nextY <= centerline) {
@@ -122,21 +140,54 @@ public class Turret {
         lastY = ry;
         lastHeading = heading;
         lastVelocity = vx;
+        lastAzimuth = azimuth;
     }
 
-    private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double x, double y, double heading, double velocity) {
+    private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double lastAzimuth, double x, double y, double heading, double velocity, double azimuth, double deltaT) {
 
         /*
         This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
-        compensate for system latency (both hardware and software).
+        compensate for system latency (both hardware and software). It figures out the displacement over the last loop, velocity and acceleration, calculates roughly
+        how far the turret had to move the last loop, how long that adjustment takes, and predicts that duration into the future.
          */
 
-        nextX = (x - lastX) + x;
-        nextY = (y - lastY) + y;
-        nextHeading = (heading - lastHeading) + heading;
-        nextVelocity = (velocity - lastVelocity) + velocity;
+        // Figure out which hive to target based on the robot's current position
+        if (y <= centerline) {
+            ty = tay;
+        } else if (y > centerline) {
+            ty = tby;
+        }
+
+        distance = Math.sqrt(Math.pow((tx - x), 2) + Math.pow((ty - y), 2)); // Calculate the distance to the correct target using the formula for distance between two points
+        absAngle = Math.toDegrees(Math.atan2((ty - y), (tx - x))); // Calculate the angle from the robot's pose to the hive
+        targetAngle = heading - absAngle + 180; // Calculate the turret target angle relative to the chassis heading
+
+        launchVelocity = Trajectory.CalculateVelocity(distance);
+        launchAngle = Trajectory.CalculateAngle(distance);
+
+        // Calculate the aim offset based on the robot's translational velocity
+        double velocityOffset = Math.atan(nextVelocity / (launchVelocity * Math.cos(launchAngle)));
+
+        targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
+
+        nextAzimuthAdjustment = Math.abs(targetAngle-azimuth);
+
+        // Approximate how long it took the turret to make its last adjustment, normalized to a positive number
+        azimuthVelocity = (azimuth - lastAzimuth)/deltaT;
+        turretTimeToGoal = nextAzimuthAdjustment/azimuthVelocity;
+
+        // Use the turret's last time to goal to figure out the next pose that far into the future
+        nextX = (((x-lastX)/deltaT)*turretTimeToGoal) + x;
+        nextY = (((y-lastY)/deltaT)*turretTimeToGoal) + y;
+        nextHeading = (((heading-lastHeading)/deltaT)*turretTimeToGoal) + heading;
+        nextVelocity = (((velocity-lastVelocity)/deltaT)*turretTimeToGoal) + velocity;
     }
 
+    private double convertEncoder(double encoderValue) {
+        degrees = (encoderValue/3.3)*360;
+        return degrees;
+    }
+    
     private void runFlywheel(double launchVelocity) {
         /*
         The following line converts the output of the Trajectory class (cm/s) into output acceptable to the flywheel PIDF controller (ticks per second).
