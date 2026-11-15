@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.pedropathing.drivetrain.DrivePowers;
@@ -31,6 +33,8 @@ public class MainTeleOP extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // duplicate telemetry to the FTC Dashboard
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         // Create the Pedro follower object
         follower = Constants.create(hardwareMap);
 
