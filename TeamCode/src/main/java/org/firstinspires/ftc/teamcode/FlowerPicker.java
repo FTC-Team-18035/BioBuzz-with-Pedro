@@ -1,38 +1,29 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Utility;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Utility
+public class FlowerPicker {
+    private double up = .6;  // TODO - correct value after testing
+    private double down = .45;  // TODO - correct value after testing
+    private Servo flowerPickerA;
+    private Servo flowerPickerB;
 
-// Utility Opmodes are available under the settings menu to the top right and are
-// an organizational change to keep functioning opmodes available but not cluttering
-// the main AUTO/TELE area of code display
+    public FlowerPicker (HardwareMap hardwaremap) {
 
-public class FlowerPicker extends LinearOpMode {
-    Servo servoA,servoB;
-    @Override
-    public void runOpMode() {
-        servoA = hardwareMap.get(Servo.class, "flowerPickerA");
-        servoB = hardwareMap.get(Servo.class, "flowerPickerB");
+    this.flowerPickerA = hardwaremap.get(Servo .class,"flowerPickerA");
+    this.flowerPickerB = hardwaremap.get(Servo .class,"flowerPickerB");
 
-        waitForStart();
+    flowerPickerA.setPosition(.5);  // set to safe midpoint position
+    flowerPickerB.setPosition(.5);
+    }
 
-        while (opModeIsActive()) {
-
-
-            if (gamepad1.a) {                  //flower picker servo control
-                servoA.setPosition(1);        //A|B lower the flower picker
-            } else {
-                servoA.setPosition(0);
-            }
-            if (gamepad1.a) {
-                servoB.setPosition(1);
-            } else {
-                servoB.setPosition(0);
-            }
-        }
+    public void raise() {
+        flowerPickerA.setPosition(up);
+        flowerPickerA.setPosition(up);
+    }
+    public void lower() {
+        flowerPickerA.setPosition(down);
+        flowerPickerA.setPosition(down);
     }
 }
