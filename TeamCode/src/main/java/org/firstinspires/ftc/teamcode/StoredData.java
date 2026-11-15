@@ -14,6 +14,7 @@ import com.pedropathing.math.Pose;
 public class StoredData {
     // add variables for information you want to save
     public static double lastAutoTargety = 52;  // default to near target y is always 58
+    public static boolean autoWasRun = false;
     public static Pose lastAutoPose = new Pose(0,0,0);  // assign a value to avoid null possibility
 
 }

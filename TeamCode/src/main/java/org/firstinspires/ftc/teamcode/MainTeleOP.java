@@ -45,7 +45,11 @@ public class MainTeleOP extends LinearOpMode {
      //   flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
     //    flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
 
-        follower.setPose(new Pose(72,7,Math.toRadians(90))); // Set robot's starting pose on field TODO: Make automatic using Limelight
+        if (StoredData.autoWasRun) {
+            follower.setPose(StoredData.lastAutoPose); // use last pose of Auto to set starting position
+        } else{
+            follower.setPose(new Pose(72, 7, Math.toRadians(90))); // Set robot's starting pose on field TODO: Make automatic using Limelight
+        }
 
         Turret.initialize(); // Zero the turret and hood
 
@@ -54,6 +58,8 @@ public class MainTeleOP extends LinearOpMode {
      //   flowerPickerB.setPosition(up);
 
         waitForStart();
+
+            StoredData.autoWasRun = false; // toggle
 
         while (opModeIsActive()) {
 
