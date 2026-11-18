@@ -30,7 +30,7 @@ public class Turret {
     private double launchAngle;
     private double targetAngle;
     private double azimuth;
-    private double nextAzimuthAdjustment;
+    private double difference;
 
     private ElapsedTime loopTime;
     private double lastTime = 0;
@@ -41,7 +41,6 @@ public class Turret {
     private double lastAzimuth = 0;
 
     private double deltaT;
-    private double azimuthVelocity;
     public double nextX;
     public double nextY;
     public double nextHeading;
@@ -56,6 +55,7 @@ public class Turret {
     public Servo shooterAngleA;
     public Servo shooterAngleB;
     public AnalogInput azimuthEncoder;
+
     public double degrees;
     public static double launchVelocityMultiplier = 2.57;
 
@@ -67,7 +67,7 @@ public class Turret {
     public Turret(HardwareMap hardwareMap) {
         loopTime = new ElapsedTime();
 
-        AnalogInput azimuthEncoder = hardwareMap.get(AnalogInput.class, "azimuthBEncoder");
+        azimuthEncoder = hardwareMap.get(AnalogInput.class, "azimuthBEncoder");
 
         flywheelA = hardwareMap.get(DcMotorEx.class, "flywheelA");
         flywheelB = hardwareMap.get(DcMotorEx.class, "flywheelB");
@@ -108,6 +108,8 @@ public class Turret {
         deltaT = currentTime-lastTime;
         azimuth = convertEncoder(azimuthEncoder.getVoltage());
 
+        heading = Math.toDegrees(heading);
+
         // Call the method for predictive SOTM tracking. Function explained in its declaration
         calculateNextPose(lastX, lastY, lastHeading, lastVelocity, lastAzimuth, rx, ry, heading, vx, azimuth, deltaT);
 
@@ -127,7 +129,7 @@ public class Turret {
         launchAngle = Trajectory.CalculateAngle(distance);
 
         // Calculate the aim offset based on the robot's translational velocity
-        double velocityOffset = Math.atan(nextVelocity / (launchVelocity * Math.cos(launchAngle)));
+        double velocityOffset = Math.atan(nextVelocity / (launchVelocity * Math.cos(Math.toRadians(launchAngle))));
 
         targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
 
@@ -147,34 +149,12 @@ public class Turret {
 
         /*
         This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
-        compensate for system latency (both hardware and software). It figures out the displacement over the last loop, velocity and acceleration, calculates roughly
-        how far the turret had to move the last loop, how long that adjustment takes, and predicts that duration into the future.
+        compensate for system latency (both hardware and software). It figures out the displacement over the last loop, velocity and acceleration, calculates
+        how far the turret had to move the last loop and how long that adjustment takes, then predicts that duration into the future.
          */
 
-        // Figure out which hive to target based on the robot's current position
-        if (y <= centerline) {
-            ty = tay;
-        } else if (y > centerline) {
-            ty = tby;
-        }
-
-        distance = Math.sqrt(Math.pow((tx - x), 2) + Math.pow((ty - y), 2)); // Calculate the distance to the correct target using the formula for distance between two points
-        absAngle = Math.toDegrees(Math.atan2((ty - y), (tx - x))); // Calculate the angle from the robot's pose to the hive
-        targetAngle = heading - absAngle + 180; // Calculate the turret target angle relative to the chassis heading
-
-        launchVelocity = Trajectory.CalculateVelocity(distance);
-        launchAngle = Trajectory.CalculateAngle(distance);
-
-        // Calculate the aim offset based on the robot's translational velocity
-        double velocityOffset = Math.atan(nextVelocity / (launchVelocity * Math.cos(launchAngle)));
-
-        targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
-
-        nextAzimuthAdjustment = Math.abs(targetAngle-azimuth);
-
         // Approximate how long it took the turret to make its last adjustment, normalized to a positive number
-        azimuthVelocity = (azimuth - lastAzimuth)/deltaT;
-        turretTimeToGoal = nextAzimuthAdjustment/azimuthVelocity;
+        turretTimeToGoal = Math.abs(azimuth-lastAzimuth)*turretSecondsPerDegree*2;
 
         // Use the turret's last time to goal to figure out the next pose that far into the future
         nextX = (((x-lastX)/deltaT)*turretTimeToGoal) + x;
@@ -225,6 +205,19 @@ public class Turret {
         // Set servo positions
         turretAzimuthA.setPosition(servoPosition);
         turretAzimuthB.setPosition(servoPosition);
+    }
+
+    public double checkAzimuthAngle(double tolerance) {
+        // Use this for setting feeder power in MainTeleOP once everything is calibrated properly.
+
+        difference = Math.abs(convertEncoder(azimuthEncoder.getVoltage())-targetAngle);
+
+        if (difference <= tolerance){
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 
     public void stopFlywheel() {
