@@ -6,6 +6,19 @@ import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.ALIGNFLOWER_HEADING;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.ALIGNFLOWER_X;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.ALIGNFLOWER_Y;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.PICKFLOWER_HEADING;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.PICKFLOWER_X;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.PICKFLOWER_Y;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.SHOOTA_HEADING;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.SHOOTA_X;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.SHOOTA_Y;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.START_HEADING;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.START_X;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.START_Y;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.api.Paths;
@@ -34,18 +47,18 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // Start position is touching the wall and aimed at the Red Hive
-    private final Pose start = poseFactory.of(58, 8, 90);
+    private final Pose start = poseFactory.of(START_X, START_Y, START_HEADING);
     // Move away from wall and prepare to shoot preload
-    private final Pose shoota = poseFactory.of(58, 16.5, 90);
+    private final Pose shoota = poseFactory.of(SHOOTA_X, SHOOTA_Y, SHOOTA_HEADING);
     // Proceed to flower picker in an arc
-    private final Pose point2 = poseFactory.of(22.6693, 47, -179.9826);
+    private final Pose alignFlower = poseFactory.of(ALIGNFLOWER_X, ALIGNFLOWER_Y, ALIGNFLOWER_HEADING);
     private final Pose point2Control1 = poseFactory.of(57.8932, 35.4753, 0);
     private final Pose point2Control2 = poseFactory.of(39.383, 46.9364, 0);
     // Proceed to Flower after picker/intake engaged
-    private final Pose nearFlower = poseFactory.of(17, 47, 180);
+    private final Pose pickFlower = poseFactory.of(PICKFLOWER_X, PICKFLOWER_Y, PICKFLOWER_HEADING);
     // Return to shooting position in front of Hive
-    private final Pose point4Start = poseFactory.of(17, 47, 180);  // redundant - nearFlower
-    private final Pose point4 = poseFactory.of(58, 29, 90);
+    private final Pose point4Start = poseFactory.of(17, 47, 180);  // redundant - alignFlower
+    private final Pose shootSecondTime = poseFactory.of(SHOOTA_X, SHOOTA_Y, SHOOTA_HEADING);
 
 
     // Autonomous routine
@@ -54,7 +67,7 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
                 follow(follower, path1()),
 
                 // shooting actions here - these are written as Commands instead of our normal JAVA
-                instant (()-> turret.target(58,16.5,90,0)),  // This is called a lambda
+                instant (()-> turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0)),  // This is called a lambda
                 waitMs(250),  // waits for all balls to exit
                 instant(()-> turret.stopFlywheel()),  // shuts down flywheel to save battery power
 
@@ -77,7 +90,7 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
 
                 follow(follower,path5()),
                 // shooting actions again
-                instant (()-> turret.target(58,29,90,0)),  // This is called a lambda
+                instant (()-> turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0)),  // This is called a lambda
                 waitMs(250),  // waits for all balls to exit
                 instant(()-> turret.stopFlywheel())  // shuts down flywheel to save battery power
 
@@ -122,18 +135,18 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
     }
 
     public Path path2() {
-        return Paths.curve(shoota, point2Control1, point2Control2, point2).tangent(); }
+        return Paths.curve(shoota, point2Control1, point2Control2, alignFlower).tangent(); }
 
     public Path path3() {
-        return Paths.line(point2, nearFlower).constant(nearFlower);
+        return Paths.line(alignFlower, pickFlower).constant(pickFlower);
     }
 
     public Path path4() {
-        return Paths.line(nearFlower, point2).linear(nearFlower, point2);
+        return Paths.line(pickFlower, alignFlower).linear(pickFlower, alignFlower);
     }
 
     public Path path5() {
-        return Paths.line(point2, point4).linear(point2, point4);
+        return Paths.line(alignFlower, shootSecondTime).linear(alignFlower, shootSecondTime);
     }
 }
 
