@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class FlowerPicker {
-    private double up = .6;  // TODO - correct value after testing
-    private double down = .45;  // TODO - correct value after testing
+    private double up = .6685;
+    private double down = .2487;
     private Servo flowerPickerA;
     private Servo flowerPickerB;
 
@@ -20,10 +20,10 @@ public class FlowerPicker {
 
     public void raise() {
         flowerPickerA.setPosition(up);
-        flowerPickerA.setPosition(up);
+        flowerPickerB.setPosition(1-up);
     }
     public void lower() {
         flowerPickerA.setPosition(down);
-        flowerPickerA.setPosition(down);
+        flowerPickerB.setPosition(1-down);
     }
 }

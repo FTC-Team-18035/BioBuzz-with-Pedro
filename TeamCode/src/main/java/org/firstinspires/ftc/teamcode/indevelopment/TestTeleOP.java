@@ -144,7 +144,7 @@ public class TestTeleOP extends LinearOpMode {
 private void handleFlowerpickers() {
     float normalizedleftsticky = (gamepad1.left_stick_y + 1) / 2;
      flowerPickerA.setPosition(normalizedleftsticky);
-     flowerPickerB.setPosition(normalizedleftsticky);  // set to stick value 0 to 1
+     flowerPickerB.setPosition(1-normalizedleftsticky);  // set to stick value 0 to 1
 
      }
 }

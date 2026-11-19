@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -102,7 +104,7 @@ public class Turret {
         shooterAngleB.setPosition(.5);
     }
 
-    public void target(double rx, double ry, double heading, double vx) {
+    public double target(double rx, double ry, double heading, double vx) {
         lastTime = currentTime;
         currentTime = loopTime.seconds();
         deltaT = currentTime-lastTime;
@@ -143,6 +145,15 @@ public class Turret {
         lastHeading = heading;
         lastVelocity = vx;
         lastAzimuth = azimuth;
+
+
+       // telemetry.addData("current x", rx);
+       // telemetry.addData("current y", ry);
+        //telemetry.addData("next x", nextX);
+        //telemetry.addData("next y", nextY);
+        //telemetry.addData("called turret target Angle",targetAngle);
+        //telemetry.update();
+        return azimuth;
     }
 
     private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double lastAzimuth, double x, double y, double heading, double velocity, double azimuth, double deltaT) {
@@ -181,6 +192,8 @@ public class Turret {
         // Set the flywheel motor controllers to the correct calculated velocity
         flywheelA.setVelocity(launchTPS);
         flywheelB.setVelocity(launchTPS);
+       // telemetry.addData("launchvelocity",launchVelocity);
+        //telemetry.update();
     }
 
     private void setHoodAngle(double launchAngle) {
