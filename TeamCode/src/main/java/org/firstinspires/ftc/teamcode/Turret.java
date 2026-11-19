@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -112,8 +110,20 @@ public class Turret {
 
         heading = Math.toDegrees(heading);
 
-        // Call the method for predictive SOTM tracking. Function explained in its declaration
-        calculateNextPose(lastX, lastY, lastHeading, lastVelocity, lastAzimuth, rx, ry, heading, vx, azimuth, deltaT);
+        /*
+        This section uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
+        compensate for system latency (both hardware and software). It figures out the displacement over the last loop, velocity and acceleration, calculates
+        how far the turret had to move the last loop and how long that adjustment takes, then predicts that duration into the future.
+         */
+
+        // Approximate how long it took the turret to make its last adjustment, normalized to a positive number
+        turretTimeToGoal = Math.abs(azimuth-lastAzimuth)*turretSecondsPerDegree*2;
+
+        // Use the turret's last time to goal to figure out the next pose that far into the future
+        nextX = (((rx-lastX)/deltaT)*turretTimeToGoal) + rx;
+        nextY = (((ry-lastY)/deltaT)*turretTimeToGoal) + ry;
+        nextHeading = (((heading-lastHeading)/deltaT)*turretTimeToGoal) + heading;
+        nextVelocity = (((vx-lastVelocity)/deltaT)*turretTimeToGoal) + vx;
 
         // Figure out which hive to target based on the robot's position
         if (nextY <= centerline) {
@@ -135,7 +145,18 @@ public class Turret {
 
         targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
 
-        setAzimuthAngle(targetAngle);
+        if (targetAngle >= 360) {
+            targetAngle = 180; // Wrap around if the angle exceeds 360 degrees using a waypoint
+        } else if (targetAngle <= 0) {
+            targetAngle = 180; // Wrap around if the angle is negative using a waypoint
+        }
+
+        double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
+
+        // Set servo positions
+        turretAzimuthA.setPosition(servoPosition);
+        turretAzimuthB.setPosition(servoPosition);
+
         setHoodAngle(launchAngle); // Runs the hood servos to the calculated launch angle
         runFlywheel(launchVelocity); // Runs the flywheel motors to the calculated launch velocity
 
@@ -146,17 +167,12 @@ public class Turret {
         lastVelocity = vx;
         lastAzimuth = azimuth;
 
-
-       // telemetry.addData("current x", rx);
-       // telemetry.addData("current y", ry);
-        //telemetry.addData("next x", nextX);
-        //telemetry.addData("next y", nextY);
-        //telemetry.addData("called turret target Angle",targetAngle);
-        //telemetry.update();
         return azimuth;
     }
 
-    private void calculateNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double lastAzimuth, double x, double y, double heading, double velocity, double azimuth, double deltaT) {
+    private void nextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double lastAzimuth, double x, double y, double heading, double velocity, double azimuth, double deltaT) {
+
+        // THIS METHOD IS UNUSED FOR TESTING PURPOSES
 
         /*
         This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
@@ -206,6 +222,8 @@ public class Turret {
     }
 
     private void setAzimuthAngle(double targetAngle) {
+
+        // THIS METHOD IS UNUSED FOR TESTING PURPOSES
 
         if (targetAngle >= 360) {
             targetAngle = 180; // Wrap around if the angle exceeds 360 degrees using a waypoint
