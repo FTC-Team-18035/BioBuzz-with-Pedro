@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
 public class Turret {
     public double tx = 58; //in The distance from the field wall to the hives along the x axis
@@ -63,6 +65,7 @@ public class Turret {
     private double kF = .903;
     private double kD = 5.4;
 
+    private Telemetry telemetry;
 
     public Turret(HardwareMap hardwareMap) {
         loopTime = new ElapsedTime();
@@ -86,6 +89,7 @@ public class Turret {
         this.shooterAngleA = hardwareMap.get(Servo.class, "shooterAngleA");
         this.shooterAngleB = hardwareMap.get(Servo.class, "shooterAngleB");
         this.feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+        this.telemetry = telemetry;
     }
 
     public void initialize() {
@@ -254,5 +258,24 @@ public class Turret {
     public void stopFlywheel() {
         flywheelA.setVelocity(0);
         flywheelB.setVelocity(0);
+    }
+
+    public void feederOn(){     // use in autonomous
+        feeder.setPower(1);
+    }
+
+    public void feederOff(){    // use in autonomous
+        feeder.setPower(0);
+    }
+
+    public void updateTelemetry() {
+        // add all values to display in the main OpMode telemetry que
+        telemetry.addData( "Launch TPS", ((launchVelocity * 28) / (7.2 * Math.PI)) * launchVelocityMultiplier);
+        telemetry.addData( "azimuth encoder", azimuth);
+        telemetry.addData( "servo postition", (targetAngle / 360));
+        telemetry.addData( "next X", nextX);
+        telemetry.addData( "next Y", nextY);
+        telemetry.addData( "next HeadingX", nextHeading);
+
     }
 }

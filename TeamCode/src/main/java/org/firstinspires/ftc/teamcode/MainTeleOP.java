@@ -128,7 +128,12 @@ public class MainTeleOP extends LinearOpMode {
             ManualDrive.driveOrHold(follower, powers);
             follower.update();
             follower.localizer.update();
-            telemetry.addData("Azumuth",turret.target(rx, ry, heading, vx));
+
+            // Update telemetry from classes
+            turret.updateTelemetry();
+            // telemetry items
+            telemetry.addData("target x", rx);
+            telemetry.addData("target y", ry);
             telemetry.addData("heading", heading);
             telemetry.addData("velocity",vx);
             telemetry.update();
