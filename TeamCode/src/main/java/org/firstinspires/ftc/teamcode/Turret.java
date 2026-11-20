@@ -67,7 +67,7 @@ public class Turret {
 
     private Telemetry telemetry;
 
-    public Turret(HardwareMap hardwareMap) {
+    public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         loopTime = new ElapsedTime();
 
         azimuthEncoder = hardwareMap.get(AnalogInput.class, "azimuthBEncoder");
@@ -212,8 +212,7 @@ public class Turret {
         // Set the flywheel motor controllers to the correct calculated velocity
         flywheelA.setVelocity(launchTPS);
         flywheelB.setVelocity(launchTPS);
-       // telemetry.addData("launchvelocity",launchVelocity);
-        //telemetry.update();
+
     }
 
     private void setHoodAngle(double launchAngle) {
@@ -260,11 +259,11 @@ public class Turret {
         flywheelB.setVelocity(0);
     }
 
-    public void feederOn(){     // use in autonomous
+    public void feederOn(){     // for use in autonomous
         feeder.setPower(1);
     }
 
-    public void feederOff(){    // use in autonomous
+    public void feederOff(){    // for use in autonomous
         feeder.setPower(0);
     }
 

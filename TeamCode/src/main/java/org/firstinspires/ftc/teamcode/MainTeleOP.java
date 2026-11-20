@@ -25,7 +25,7 @@ public class MainTeleOP extends LinearOpMode {
 
     // Define motors and servos
     private DcMotorEx intake;
-    private DcMotorEx feeder;
+    //private DcMotorEx feeder;
 
     private Servo flowerPickerA;
     private Servo flowerPickerB;
@@ -39,12 +39,12 @@ public class MainTeleOP extends LinearOpMode {
         follower = Constants.create(hardwareMap);
 
         // Create the turret object
-        turret = new Turret(hardwareMap);
+        turret = new Turret(hardwareMap, telemetry);
 
         // Configure motors and servos for use
         intake = hardwareMap.get(DcMotorEx.class, "intake");
 
-        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+        //feeder = hardwareMap.get(DcMotorEx.class, "feeder");  moved to turret class
 
         flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
         flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
@@ -90,10 +90,12 @@ public class MainTeleOP extends LinearOpMode {
 
             // Handle feeder
             if (gamepad1.left_trigger_pressed) {
-                feeder.setPower(1);
+                turret.feederOn();
+                //feeder.setPower(1);
             }
             else {
-                feeder.setPower(0);
+                turret.feederOff();
+                //feeder.setPower(0);
             }
 
             // Handle intake
@@ -107,11 +109,13 @@ public class MainTeleOP extends LinearOpMode {
             // Handle intake and feeder simultaneously
             if (gamepad1.right_trigger_pressed) {
                 intake.setPower(1);
-                feeder.setPower(1);
+                turret.feederOn();
+                //feeder.setPower(1);
             }
             else {
                 intake.setPower(0);
-                feeder.setPower(0);
+                turret.feederOff();
+                //feeder.setPower(0);
             }
 
             //Update flower picker position
@@ -121,7 +125,7 @@ public class MainTeleOP extends LinearOpMode {
            }
             else {
                 flowerPickerA.setPosition(up);
-               flowerPickerB.setPosition(1-up);
+                flowerPickerB.setPosition(1-up);
            }
 
             // Update follower for field centric driving and SOTM
