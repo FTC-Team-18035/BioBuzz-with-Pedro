@@ -20,6 +20,7 @@ import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.Coordin
 import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.START_Y;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
@@ -34,15 +35,20 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.FlowerPicker;
 import org.firstinspires.ftc.teamcode.StoredData;
-import org.firstinspires.ftc.teamcode.Turret;
+import org.firstinspires.ftc.teamcode.indevelopment.TurretWithFeederOnOff;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "AutoPath", group = "Autonomous")
+@Config // allow FTCDashboard editing of any public static variables
+@Autonomous(name = "AutoPath1", group = "Autonomous")
 public class RedAuto1_preload_and_flower extends LinearOpMode {
     private Follower follower;
-    private Turret turret;
+    private TurretWithFeederOnOff turret;
     private FlowerPicker flowerPicker;
     private DcMotorEx intake = hardwareMap.get(DcMotorEx.class,"intake");
+
+    public static double preloadShootTime = 500; // ms delay of auto routine to shoot preload
+    public static double flowerPickTime = 1000; // ms delay of auto routine to pick flower
+    public static double moveFlowerPicker = 200; // ms delay of auto routine to lower/raise flowerpicker
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
@@ -52,8 +58,8 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
     private final Pose shoota = poseFactory.of(SHOOTA_X, SHOOTA_Y, SHOOTA_HEADING);
     // Proceed to flower picker in an arc
     private final Pose alignFlower = poseFactory.of(ALIGNFLOWER_X, ALIGNFLOWER_Y, ALIGNFLOWER_HEADING);
-    private final Pose point2Control1 = poseFactory.of(57.8932, 35.4753, 0);
-    private final Pose point2Control2 = poseFactory.of(39.383, 46.9364, 0);
+    private final Pose point2Control1 = poseFactory.of(58, 36, 0);
+    private final Pose point2Control2 = poseFactory.of(395, 47, 0);
     // Proceed to Flower after picker/intake engaged
     private final Pose pickFlower = poseFactory.of(PICKFLOWER_X, PICKFLOWER_Y, PICKFLOWER_HEADING);
     // Return to shooting position in front of Hive
@@ -68,30 +74,30 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
 
                 // shooting actions here - these are written as Commands instead of our normal JAVA
                 instant (()-> turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0)),  // This is called a lambda
-                waitMs(250),  // waits for all balls to exit
+                waitMs(preloadShootTime),  // waits for all balls to exit
                 instant(()-> turret.stopFlywheel()),  // shuts down flywheel to save battery power
 
                 follow(follower, path2()),
                 // lower flower picker
                 instant(()-> flowerPicker.lower()),
-                waitMs(200),
+                waitMs(flowerPickTime),
                 instant(()-> intake.setPower(1)),
                 // missing feeder actions here
 
                 follow(follower, path3()),
                 // engage flower picker for collection
-                waitMs(500),
+                waitMs(moveFlowerPicker),
                 instant(()-> intake.setPower(0)),
 
                 follow(follower, path4()),
                 instant(()-> flowerPicker.raise()),
-                waitMs(100),
+                waitMs(moveFlowerPicker),
 
 
                 follow(follower,path5()),
                 // shooting actions again
                 instant (()-> turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0)),  // This is called a lambda
-                waitMs(250),  // waits for all balls to exit
+                waitMs(preloadShootTime),  // waits for all balls to exit
                 instant(()-> turret.stopFlywheel())  // shuts down flywheel to save battery power
 
                 // end of autonomous actions
@@ -103,9 +109,14 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
         Scheduler.reset();
         // duplicate telemetry to the FTC Dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        // create Pedro follower
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
+        // Create the turret object
+        turret = new TurretWithFeederOnOff(hardwareMap, telemetry);
+        // Create flower picker object
+        flowerPicker = new FlowerPicker(hardwareMap);
 
         waitForStart();
         schedule(autoRoutine());
@@ -122,6 +133,8 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
                 telemetry.addData("Path number", follower.pathIndex());
             }
+            // Update telemetry from classes
+            turret.updateTelemetry();
 
             telemetry.update();
         }

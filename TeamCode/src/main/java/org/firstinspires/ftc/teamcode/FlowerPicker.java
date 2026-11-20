@@ -20,10 +20,10 @@ public class FlowerPicker {
 
     public void raise() {
         flowerPickerA.setPosition(up);
-        flowerPickerB.setPosition(1-up);
+        flowerPickerB.setPosition(1-up);  // adjust for reverse operation
     }
     public void lower() {
         flowerPickerA.setPosition(down);
-        flowerPickerB.setPosition(1-down);
+        flowerPickerB.setPosition(1-down);  // adjust for reverse operation
     }
 }
