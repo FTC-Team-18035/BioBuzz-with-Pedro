@@ -58,11 +58,15 @@ public class Turret {
     public AnalogInput azimuthEncoder;
 
     public double degrees;
-    public static double launchVelocityMultiplier = 2.57;
+    public double launchVelocityMultiplier;
 
     private double kP = 5.611;
     private double kF = 2.3030;
     private double kD = 2.4;
+    private double minDistance = 30.48;
+    private double maxDistance = 218.44;
+    public static double minVelocityMultiplier = 2.57;
+    public static double maxVelocityMultiplier = 3;
 
     private Telemetry telemetry;
 
@@ -160,7 +164,9 @@ public class Turret {
         turretAzimuthB.setPosition(servoPosition);
 
         setHoodAngle(launchAngle); // Runs the hood servos to the calculated launch angle
-        runFlywheel(launchVelocity); // Runs the flywheel motors to the calculated launch velocity
+
+        launchVelocityMultiplier = (((distance - minDistance) / (maxDistance - minDistance)) * ((maxVelocityMultiplier - minVelocityMultiplier))) + minVelocityMultiplier;
+        runFlywheel(launchVelocity, distance); // Runs the flywheel motors to the calculated launch velocity
 
         // Set all current values used to their last counterparts for calculations in the next loop
         lastX = rx;
@@ -197,7 +203,7 @@ public class Turret {
         return degrees;
     }
     
-    private void runFlywheel(double launchVelocity) {
+    private void runFlywheel(double launchVelocity, double launchVelocityMultiplier) {
         /*
         The following line converts the output of the Trajectory class (cm/s) into output acceptable to the flywheel PIDF controller (ticks per second).
         Note that because we are using a hooded shooter, the linear velocity of the pollen (launch velocity) is exactly half of the tangential
@@ -273,6 +279,7 @@ public class Turret {
         telemetry.addData( "next X", nextX);
         telemetry.addData( "next Y", nextY);
         telemetry.addData( "next Heading", nextHeading);
+        telemetry.addData("launch velocity multiplier", launchVelocityMultiplier);
 
     }
 }
