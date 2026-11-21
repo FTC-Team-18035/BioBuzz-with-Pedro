@@ -19,9 +19,9 @@ public class FlywheelTuner extends LinearOpMode {
     private DcMotorEx intake;
     private DcMotorEx feeder;
 
-    private double kP = 6.411; // Proportional gain for shooter TODO: Tune
-    private double kF = .903; // Feedforward gain for shooter TODO: Tune
-    private double kD = 5.4;
+    private double kP = 5.611; // Proportional gain for shooter TODO: Tune
+    private double kF = 2.303; // Feedforward gain for shooter TODO: Tune
+    private double kD = 2.4;
     private double curTargetVelocity;
     private double highVelocity = 2000;
     private double lowVelocity = 900;
