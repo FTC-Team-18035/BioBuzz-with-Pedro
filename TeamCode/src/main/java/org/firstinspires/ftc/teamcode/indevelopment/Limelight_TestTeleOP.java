@@ -160,6 +160,7 @@ public class Limelight_TestTeleOP extends LinearOpMode {
 
             // Update telemetry from classes
             turret.updateTelemetry();
+
             // telemetry items
             telemetry.addData("target x", rx);
             telemetry.addData("target y", ry);

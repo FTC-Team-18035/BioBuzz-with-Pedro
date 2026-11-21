@@ -118,8 +118,10 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
+
         // Create the turret object
         turret = new Turret(hardwareMap, telemetry);
+
         // Create flower picker object
         flowerPicker = new FlowerPicker(hardwareMap);
 
