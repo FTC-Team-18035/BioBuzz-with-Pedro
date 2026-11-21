@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.FlowerPicker;
 import org.firstinspires.ftc.teamcode.StoredData;
+import org.firstinspires.ftc.teamcode.Turret;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp
@@ -22,7 +23,7 @@ public class Limelight_TestTeleOP extends LinearOpMode {
     private boolean flowerPickerState = false; // True = down, false = up
     private long lastTagSeenTimeMs = 0;
 
-    private TurretWithOldCode turretWithOldCode;  // alternate turret in development
+    private Turret turret;
     private Follower follower;
     private Limelight3A limelight;
     private FlowerPicker flowerPicker;
@@ -42,7 +43,7 @@ public class Limelight_TestTeleOP extends LinearOpMode {
         follower = Constants.create(hardwareMap);
 
         // Create the turret object
-        turretWithOldCode = new TurretWithOldCode(hardwareMap, telemetry);
+        turret = new Turret(hardwareMap, telemetry);
         // Get limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         //telemetry.setMsTransmissionInterval(11);
@@ -59,7 +60,7 @@ public class Limelight_TestTeleOP extends LinearOpMode {
             follower.setPose(new Pose(58, 8, Math.toRadians(90))); // Set robot's starting pose on field TODO - Make automatic using Limelight
         }
 
-        turretWithOldCode.initialize(); // Zero the turret and hood - 0 power feeder
+        turret.initialize(); // Zero the turret and hood - 0 power feeder
 
         intake.setPower(0);
         feeder.setPower(0);
@@ -107,7 +108,7 @@ public class Limelight_TestTeleOP extends LinearOpMode {
                     lastTagSeenTimeMs = System.currentTimeMillis();
                 }
 
-                turretWithOldCode.target(rx, ry, heading, vx); // Calculate turret angle for SOTM (pre-compensated for translational velocity)
+                turret.target(rx, ry, heading, vx); // Calculate turret angle for SOTM (pre-compensated for translational velocity)
 
                 // Calculate drive powers for field centric control based on joystick input and robot heading, using Pedro's field centric driving
                 DrivePowers powers = ManualDrive.fieldCentric(
@@ -152,12 +153,21 @@ public class Limelight_TestTeleOP extends LinearOpMode {
                 }
 
 
-                // Update follower for field centric driving and SOTM
-                ManualDrive.driveOrHold(follower, powers);
-                follower.update();
-                follower.localizer.update();
-                telemetry.update();
-            }
+            // Update follower for field centric driving and SOTM
+            ManualDrive.driveOrHold(follower, powers);
+            follower.update();
+            follower.localizer.update();
+
+            // Update telemetry from classes
+            turret.updateTelemetry();
+
+            // telemetry items
+            telemetry.addData("target x", rx);
+            telemetry.addData("target y", ry);
+            telemetry.addData("heading", heading);
+            telemetry.addData("velocity",vx);
+            telemetry.update();
+        }
     }
 
 }
