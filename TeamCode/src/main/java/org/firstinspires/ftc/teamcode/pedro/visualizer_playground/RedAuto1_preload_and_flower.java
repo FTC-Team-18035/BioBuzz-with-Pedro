@@ -60,7 +60,7 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
     // Proceed to flower picker in an arc
     private final Pose alignFlower = poseFactory.of(ALIGNFLOWER_X, ALIGNFLOWER_Y, ALIGNFLOWER_HEADING);
     private final Pose point2Control1 = poseFactory.of(58, 36, 0);
-    private final Pose point2Control2 = poseFactory.of(395, 47, 0);
+    private final Pose point2Control2 = poseFactory.of(39, 47, 0);
     // Proceed to Flower after picker/intake engaged
     private final Pose pickFlower = poseFactory.of(PICKFLOWER_X, PICKFLOWER_Y, PICKFLOWER_HEADING);
     // Return to shooting position in front of Hive
@@ -74,7 +74,8 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
                 follow(follower, path1()),
 
                 // shooting actions here - these are written as Commands instead of our normal JAVA
-                instant (()-> turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0)),  // This is called a lambda
+                instant(()-> { turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0);
+                               feeder.setPower(1);}),
                 waitMs(preloadShootTime),  // waits for all balls to exit
                 instant(()-> turret.stopFlywheel()),  // shuts down flywheel to save battery power
 
@@ -82,14 +83,14 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
                 // lower flower picker
                 instant(()-> flowerPicker.lower()),
                 waitMs(flowerPickTime),
-                instant(()-> {intake.setPower(1);
-                              feeder.setPower(1);}),
+                instant(()-> { intake.setPower(1);
+                               feeder.setPower(1);}),
 
                 follow(follower, path3()),
                 // engage flower picker for collection
                 waitMs(moveFlowerPicker),
-                instant(()-> {intake.setPower(0);
-                              feeder.setPower(0);}),
+                instant(()-> { intake.setPower(0);
+                               feeder.setPower(0);}),
 
                 follow(follower, path4()),
                 instant(()-> flowerPicker.raise()),
@@ -98,13 +99,11 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
 
                 follow(follower,path5()),
                 // shooting actions again
-                instant(()->  { turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0);
-                                feeder.setPower(1);
-                                }),
-                waitMs(preloadShootTime),  // waits for all balls to exit
-                instant(()-> {  turret.stopFlywheel();  // shuts down flywheel to save battery power
-                                feeder.setPower(0);     // shuts down feeder to end routine
-                                })
+                instant(()-> { turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0);
+                               feeder.setPower(1);}),
+                waitMs(preloadShootTime),               // waits for all balls to exit
+                instant(()-> { turret.stopFlywheel();   // shuts down flywheel to save battery power
+                               feeder.setPower(0);})    // shuts down feeder to end routine
 
                 // end of autonomous actions
         );

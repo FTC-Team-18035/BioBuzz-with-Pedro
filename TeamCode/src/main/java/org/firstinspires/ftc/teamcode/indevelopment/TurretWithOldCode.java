@@ -225,7 +225,7 @@ public class TurretWithOldCode {
         flywheelA.setVelocity(0);
         flywheelB.setVelocity(0);
     }
-
+/*
     public void feederOn(){       //set up for autonomous usage
         feeder.setPower(1);
     }
@@ -233,7 +233,7 @@ public class TurretWithOldCode {
     public void feederOff(){       //set up for autonomous usage
         feeder.setPower(0);
     }
-
+*/
     public void updateTelemetry() {
         // add all values to display in the main OpMode telemetry que
         telemetry.addData( "Launch TPS", ((launchVelocity * 28) / (7.2 * Math.PI)) * launchVelocityMultiplier);
