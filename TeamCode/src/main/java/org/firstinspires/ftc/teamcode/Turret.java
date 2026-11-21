@@ -51,7 +51,6 @@ public class Turret {
     private DcMotorEx flywheelA;
     private DcMotorEx flywheelB;
     private DcMotorEx feeder;
-
     public Servo turretAzimuthA;
     public Servo turretAzimuthB;
     public Servo shooterAngleA;
@@ -61,9 +60,9 @@ public class Turret {
     public double degrees;
     public static double launchVelocityMultiplier = 2.57;
 
-    private double kP = 6.411;
-    private double kF = .903;
-    private double kD = 5.4;
+    private double kP = 5.611;
+    private double kF = 2.3030;
+    private double kD = 2.4;
 
     private Telemetry telemetry;
 
@@ -112,7 +111,6 @@ public class Turret {
         deltaT = currentTime-lastTime;
         azimuth = convertEncoder(azimuthEncoder.getVoltage());
 
-        heading = Math.toDegrees(heading);
 
         /*
         This section uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
