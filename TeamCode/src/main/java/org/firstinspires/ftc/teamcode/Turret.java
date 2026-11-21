@@ -168,6 +168,7 @@ public class Turret {
         launchVelocityMultiplier = (((distance - minDistance) / (maxDistance - minDistance)) * ((maxVelocityMultiplier - minVelocityMultiplier))) + minVelocityMultiplier;
         runFlywheel(launchVelocity, distance); // Runs the flywheel motors to the calculated launch velocity
 
+
         // Set all current values used to their last counterparts for calculations in the next loop
         lastX = rx;
         lastY = ry;
