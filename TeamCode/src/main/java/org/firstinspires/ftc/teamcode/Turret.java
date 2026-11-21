@@ -274,7 +274,7 @@ public class Turret {
         telemetry.addData( "servo postition", (targetAngle / 360));
         telemetry.addData( "next X", nextX);
         telemetry.addData( "next Y", nextY);
-        telemetry.addData( "next HeadingX", nextHeading);
+        telemetry.addData( "next Heading", nextHeading);
 
     }
 }
