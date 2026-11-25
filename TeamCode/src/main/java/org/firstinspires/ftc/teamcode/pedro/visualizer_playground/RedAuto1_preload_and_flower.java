@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.StoredData;
 import org.firstinspires.ftc.teamcode.Turret;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -197,6 +198,14 @@ public class RedAuto1_preload_and_flower extends OpMode {
 
         telemetry.update();
 
+    }
+
+    public void stop() {
+        intake.setPower(0);
+        feeder.setPower(0);
+        // Store final follower pose to be read in teleOp and toggle opmode tracker
+        StoredData.lastAutoPose = follower.pose();
+        StoredData.autoWasRun = true;
     }
 
 
