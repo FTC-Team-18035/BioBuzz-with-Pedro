@@ -50,7 +50,6 @@ public class Turret {
     public double lastVelocity = 0;
     private DcMotorEx flywheelA;
     private DcMotorEx flywheelB;
-    private DcMotorEx feeder;
     public Servo turretAzimuthA;
     public Servo turretAzimuthB;
     public Servo shooterAngleA;
@@ -91,7 +90,6 @@ public class Turret {
         this.turretAzimuthB = hardwareMap.get(Servo.class, "turretAzimuthB");
         this.shooterAngleA = hardwareMap.get(Servo.class, "shooterAngleA");
         this.shooterAngleB = hardwareMap.get(Servo.class, "shooterAngleB");
-        this.feeder = hardwareMap.get(DcMotorEx.class, "feeder");
         this.telemetry = telemetry;
     }
 
@@ -99,8 +97,6 @@ public class Turret {
 
         flywheelA.setVelocity(0);
         flywheelB.setVelocity(0);
-
-        feeder.setPower(0);
 
         turretAzimuthA.setPosition(.5);
         turretAzimuthB.setPosition(.5);
@@ -264,13 +260,6 @@ public class Turret {
         flywheelB.setVelocity(0);
     }
 
-    public void feederOn(){     // for use in autonomous
-        feeder.setPower(1);
-    }
-
-    public void feederOff(){    // for use in autonomous
-        feeder.setPower(0);
-    }
 
     public void updateTelemetry() {
         // add all values to display in the main OpMode telemetry que

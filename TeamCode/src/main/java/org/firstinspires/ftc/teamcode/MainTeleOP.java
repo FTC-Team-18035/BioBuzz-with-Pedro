@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.STARTA_HEADING;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.STARTA_X;
+import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.STARTA_Y;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.math.Pose;
@@ -25,7 +29,7 @@ public class MainTeleOP extends LinearOpMode {
 
     // Define motors and servos
     private DcMotorEx intake;
-    //private DcMotorEx feeder;
+    private DcMotorEx feeder;
 
     private Servo flowerPickerA;
     private Servo flowerPickerB;
@@ -44,7 +48,7 @@ public class MainTeleOP extends LinearOpMode {
         // Configure motors and servos for use
         intake = hardwareMap.get(DcMotorEx.class, "intake");
 
-        //feeder = hardwareMap.get(DcMotorEx.class, "feeder");  moved to turret class
+        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
 
         flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
         flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
@@ -52,10 +56,13 @@ public class MainTeleOP extends LinearOpMode {
         if (StoredData.autoWasRun) {
             follower.setPose(StoredData.lastAutoPose); // use last pose of Auto to set starting position
         } else{
-            follower.setPose(new Pose(72, 7, Math.toRadians(90))); // Set robot's starting pose on field TODO: Make automatic using Limelight
+            follower.setPose(new Pose(STARTA_X, STARTA_Y, STARTA_HEADING)); // Set robot's starting pose on field TODO: Make automatic using Limelight
         }
 
         turret.initialize(); // Zero the turret and hood
+
+        intake.setPower(0);
+        feeder.setPower(0);
 
         // Raise the flower picker for start
         flowerPickerA.setPosition(up);
@@ -90,12 +97,10 @@ public class MainTeleOP extends LinearOpMode {
 
             // Handle feeder
             if (gamepad1.left_trigger_pressed) {
-                turret.feederOn();
-                //feeder.setPower(1);
+                feeder.setPower(1);
             }
             else {
-                turret.feederOff();
-                //feeder.setPower(0);
+                feeder.setPower(0);
             }
 
             // Handle intake
@@ -109,13 +114,11 @@ public class MainTeleOP extends LinearOpMode {
             // Handle intake and feeder simultaneously
             if (gamepad1.right_trigger_pressed) {
                 intake.setPower(1);
-                turret.feederOn();
-                //feeder.setPower(1);
+                feeder.setPower(1);
             }
             else {
                 intake.setPower(0);
-                turret.feederOff();
-                //feeder.setPower(0);
+                feeder.setPower(0);
             }
 
             //Update flower picker position
