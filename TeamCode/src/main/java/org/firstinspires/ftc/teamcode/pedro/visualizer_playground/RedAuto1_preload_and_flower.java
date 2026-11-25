@@ -38,14 +38,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.FlowerPicker;
 import org.firstinspires.ftc.teamcode.StoredData;
-import org.firstinspires.ftc.teamcode.indevelopment.TurretWithOldCode;
+import org.firstinspires.ftc.teamcode.Turret;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Config // allow FTCDashboard editing of any public static variables
 @Autonomous(name = "AutoPath1", group = "Autonomous")
 public class RedAuto1_preload_and_flower extends OpMode {
     private Follower follower;
-    private TurretWithOldCode turret;
+    private Turret turret;
     //private FlowerPicker flowerPicker;
 
     private DcMotorEx feeder;
@@ -143,7 +143,7 @@ public class RedAuto1_preload_and_flower extends OpMode {
         follower.setPose(start);
         follower.update();
         // Create the turret object
-        turret = new TurretWithOldCode(hardwareMap, telemetry);
+        turret = new Turret(hardwareMap, telemetry);
         turret.initialize();
         // Create flower picker object
         //flowerPicker = new FlowerPicker(hardwareMap);
