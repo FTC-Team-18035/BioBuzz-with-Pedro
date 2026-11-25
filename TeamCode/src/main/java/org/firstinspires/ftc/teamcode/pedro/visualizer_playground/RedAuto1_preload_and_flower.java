@@ -6,6 +6,7 @@ import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.ALIGNFLOWER_HEADING;
 import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.ALIGNFLOWER_X;
 import static org.firstinspires.ftc.teamcode.pedro.visualizer_playground.CoordinatesOfValue.ALIGNFLOWER_Y;
@@ -31,7 +32,9 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.FlowerPicker;
 import org.firstinspires.ftc.teamcode.StoredData;
@@ -40,12 +43,19 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Config // allow FTCDashboard editing of any public static variables
 @Autonomous(name = "AutoPath1", group = "Autonomous")
-public class RedAuto1_preload_and_flower extends LinearOpMode {
+public class RedAuto1_preload_and_flower extends OpMode {
     private Follower follower;
     private TurretWithOldCode turret;
-    private FlowerPicker flowerPicker;
-    private DcMotorEx feeder = hardwareMap.get(DcMotorEx.class, "feeder");
-    private DcMotorEx intake = hardwareMap.get(DcMotorEx.class,"intake");
+    //private FlowerPicker flowerPicker;
+
+    private DcMotorEx feeder;
+    private DcMotorEx intake;
+    private Servo flowerPickerA;
+    private Servo flowerPickerB;
+
+    private double down = .2487;
+    private double up = .6685;
+
 
     public static double preloadShootTime = 500; // ms delay of auto routine to shoot preload
     public static double flowerPickTime = 1000; // ms delay of auto routine to pick flower
@@ -74,43 +84,57 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
                 follow(follower, path1()),
 
                 // shooting actions here - these are written as Commands instead of our normal JAVA
-                instant(()-> { turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0);
-                               feeder.setPower(1);}),
+                instant(() -> {
+                    turret.target(SHOOTA_X, SHOOTA_Y, SHOOTA_HEADING, 0);
+                    feeder.setPower(1);
+                }),
                 waitMs(preloadShootTime),  // waits for all balls to exit
-                instant(()-> turret.stopFlywheel()),  // shuts down flywheel to save battery power
+                instant(() -> turret.stopFlywheel()),  // shuts down flywheel to save battery power
 
                 follow(follower, path2()),
                 // lower flower picker
-                instant(()-> flowerPicker.lower()),
+                instant(() -> {
+                    flowerPickerA.setPosition(down);
+                    flowerPickerB.setPosition(1-down);}),
                 waitMs(flowerPickTime),
-                instant(()-> { intake.setPower(1);
-                               feeder.setPower(1);}),
+                instant(() -> {
+                    intake.setPower(1);
+                    feeder.setPower(1);
+                }),
 
                 follow(follower, path3()),
                 // engage flower picker for collection
                 waitMs(moveFlowerPicker),
-                instant(()-> { intake.setPower(0);
-                               feeder.setPower(0);}),
+                instant(() -> {
+                    intake.setPower(0);
+                    feeder.setPower(0);
+                }),
 
                 follow(follower, path4()),
-                instant(()-> flowerPicker.raise()),
+                instant(() -> {
+                    flowerPickerA.setPosition(up);
+                    flowerPickerB.setPosition(1-up);}),
                 waitMs(moveFlowerPicker),
 
 
-                follow(follower,path5()),
+                follow(follower, path5()),
                 // shooting actions again
-                instant(()-> { turret.target(SHOOTA_X,SHOOTA_Y,SHOOTA_HEADING,0);
-                               feeder.setPower(1);}),
+                instant(() -> {
+                    turret.target(SHOOTA_X, SHOOTA_Y, SHOOTA_HEADING, 0);
+                    feeder.setPower(1);
+                }),
                 waitMs(preloadShootTime),               // waits for all balls to exit
-                instant(()-> { turret.stopFlywheel();   // shuts down flywheel to save battery power
-                               feeder.setPower(0);})    // shuts down feeder to end routine
+                instant(() -> {
+                    turret.stopFlywheel();   // shuts down flywheel to save battery power
+                    feeder.setPower(0);
+                })    // shuts down feeder to end routine
 
                 // end of autonomous actions
         );
     }
 
     @Override
-    public void runOpMode() {
+    public void init() {
         Scheduler.reset();
         // duplicate telemetry to the FTC Dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -120,46 +144,51 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
         follower.update();
         // Create the turret object
         turret = new TurretWithOldCode(hardwareMap, telemetry);
+        turret.initialize();
         // Create flower picker object
-        flowerPicker = new FlowerPicker(hardwareMap);
+        //flowerPicker = new FlowerPicker(hardwareMap);
+        //flowerPicker.initialize();
 
+        feeder = hardwareMap.get(DcMotorEx.class, "feeder");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        flowerPickerA = hardwareMap.get(Servo.class, "flowerPickerA");
+        flowerPickerB = hardwareMap.get(Servo.class, "flowerPickerB");
         intake.setPower(0);
         feeder.setPower(0);
-
-        waitForStart();
-        schedule(autoRoutine());
-
-        while (opModeIsActive()) {
-            follower.update();
-            Scheduler.execute();
-
-            telemetry.addData("x", follower.pose().x());
-            telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
-
-            if (follower.currentPath() != null) {
-                telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
-                telemetry.addData("Path number", follower.pathIndex());
-            }
-            // Update telemetry from classes
-            turret.updateTelemetry();
-
-            telemetry.update();
-        }
-
-        intake.setPower(0);
-        feeder.setPower(0);
-        // Store final follower pose to be read in teleOp and toggle opmode tracker
-        StoredData.lastAutoPose = follower.pose();
-        StoredData.autoWasRun = true;
     }
+
+    public void start() {
+
+        schedule(autoRoutine());
+    }
+
+    public void loop() {
+        follower.update();
+        Scheduler.execute();
+
+        telemetry.addData("x", follower.pose().x());
+        telemetry.addData("y", follower.pose().y());
+        telemetry.addData("heading", follower.pose().heading());
+
+        if (follower.currentPath() != null) {
+            telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
+            telemetry.addData("Path number", follower.pathIndex());
+        }
+        // Update telemetry from classes
+        turret.updateTelemetry();
+
+        telemetry.update();
+
+    }
+
 
     public Path path1() {   // MOVE and score
         return Paths.line(start, shoota).linear(start, shoota);
     }
 
     public Path path2() {   // align to flower before lowering flowerpicker
-        return Paths.curve(shoota, point2Control1, point2Control2, alignFlower).tangent(); }
+        return Paths.curve(shoota, point2Control1, point2Control2, alignFlower).tangent();
+    }
 
     public Path path3() {   // move to pick flower
         return Paths.line(alignFlower, pickFlower).constant(pickFlower);
@@ -173,5 +202,4 @@ public class RedAuto1_preload_and_flower extends LinearOpMode {
         return Paths.line(alignFlower, shootSecondTime).linear(alignFlower, shootSecondTime);
     }
 }
-
 
