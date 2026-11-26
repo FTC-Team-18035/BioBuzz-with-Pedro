@@ -111,21 +111,7 @@ public class Turret {
         deltaT = currentTime-lastTime;
         azimuth = convertEncoder(azimuthEncoder.getVoltage());
 
-
-        /*
-        This section uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
-        compensate for system latency (both hardware and software). It figures out the displacement over the last loop, velocity and acceleration, calculates
-        how far the turret had to move the last loop and how long that adjustment takes, then predicts that duration into the future.
-         */
-
-        // Approximate how long it took the turret to make its last adjustment, normalized to a positive number
-        turretTimeToGoal = Math.abs(azimuth-lastAzimuth)*turretSecondsPerDegree*2;
-
-        // Use the turret's last time to goal to figure out the next pose that far into the future
-        nextX = (((rx-lastX)/deltaT)*turretTimeToGoal) + rx;
-        nextY = (((ry-lastY)/deltaT)*turretTimeToGoal) + ry;
-        nextHeading = (((heading-lastHeading)/deltaT)*turretTimeToGoal) + heading;
-        nextVelocity = (((vx-lastVelocity)/deltaT)*turretTimeToGoal) + vx;
+        getNextPose(lastX, lastY, lastHeading, lastVelocity, lastAzimuth, rx, ry, heading, vx, azimuth, deltaT); // Predict the robot's next pose
 
         // Figure out which hive to target based on the robot's position
         if (nextY <= centerline) {
@@ -147,17 +133,7 @@ public class Turret {
 
         targetAngle += Math.toDegrees(velocityOffset); // Adjust the target angle based on the velocity offset
 
-        if (targetAngle >= 360) {
-            targetAngle = 180; // Wrap around if the angle exceeds 360 degrees using a waypoint
-        } else if (targetAngle <= 0) {
-            targetAngle = 180; // Wrap around if the angle is negative using a waypoint
-        }
-
-        double servoPosition = targetAngle / 360; // Convert angle (degrees) to servo position (0 to 1)
-
-        // Set servo positions
-        turretAzimuthA.setPosition(servoPosition);
-        turretAzimuthB.setPosition(servoPosition);
+        setAzimuthAngle(targetAngle); // Sets the azimuth to the correct angle
 
         setHoodAngle(launchAngle); // Runs the hood servos to the calculated launch angle
 
@@ -175,9 +151,7 @@ public class Turret {
         return azimuth;
     }
 
-    private void nextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double lastAzimuth, double x, double y, double heading, double velocity, double azimuth, double deltaT) {
-
-        // THIS METHOD IS UNUSED FOR TESTING PURPOSES
+    private void getNextPose(double lastX, double lastY, double lastHeading, double lastVelocity, double lastAzimuth, double x, double y, double heading, double velocity, double azimuth, double deltaT) {
 
         /*
         This method uses the "last" and "current" robot poses and X velocities to predict what the robot's position and velocity is going to be the next loop, to
@@ -226,9 +200,6 @@ public class Turret {
     }
 
     private void setAzimuthAngle(double targetAngle) {
-
-        // THIS METHOD IS UNUSED FOR TESTING PURPOSES
-
         if (targetAngle >= 360) {
             targetAngle = 180; // Wrap around if the angle exceeds 360 degrees using a waypoint
         } else if (targetAngle <= 0) {
